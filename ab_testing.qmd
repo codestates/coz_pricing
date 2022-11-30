@@ -1,0 +1,190 @@
+---
+title: "A/B 테스팅"
+filters:
+   - lightbox
+lightbox: auto
+editor_options: 
+  chunk_output_type: console
+knitr:
+  opts_chunk: 
+    echo: true
+    waring: false
+    collapse: true
+    comment: "#>"
+---
+
+# 가격을 찾아가는 과정
+
+가격을 인상하거나 인하하게 되면 경제상황과 시장경쟁강도에 따라 수요가 탄력적으로 변화하게 된다. 다른 조건을 다 동일하게 두고 가격을 올리는 것이 유리한지 가격을 내리는 것이 유리한지 가격을 변동하게 되면 얼마의 가격변동폭을 두여야하는지 근거가 있다면 바로 실행하면 되고 만약 가격 변동에 따른 유불리를 판단할 수 없다면 실험을 설계하여 사업목표 달성을 위해 나아가는 것도 한 방법이다.
+
+
+![](images/ab-testing.png)
+
+실험을 여러가지 방식으로 설계를 할 수 있지만 가장 큰 대원칙은 다른 조건은 모두 동일하게 하고 단 하나의 요인만 변동을 시키고 실험의 효과를 정확히 관측하기 위해 모집단에서 표본을 동일하게 **실험군**(가격을 인상 혹은 인하)과 **대조군**(가격을 기존 가격 그대로 유지)으로 나눠 구매여부 혹은 클릭여부 등 실험목표에 유의적인 차이가 있는지를 데이터를 통해 확인하는 것이다.
+
+여기서 목표를 새로운 가격대를 탐색하는 것이 목적인지 예를 들어 시장에 전혀 나온적인 없는 신제품의 경우 가격 탐색을 목적으로 A/B 테스팅을 기획할 수 도 있다. 목표를 설정하고 문제를 해결할 것인지 새로운 기회를 찾을 것인지 정한 후에, 영역을 특정한 후에 가설을 세워 실제 데이터를 통해 검증하고 마지막으로 결과를 도출한다. 이 모든 과정에 데이터는 필수적으로 동반된다.
+
+
+:::{.callout-note}
+**A/B 테스팅 작업흐름**
+
+목표설정 &rarr; 영역 설정 (문제/기회) &rarr; 가설 설정 &rarr; (가설) 검정 &rarr; 의사결정
+:::
+
+
+# A/B 테스팅
+
+```{r}
+#| eval: false
+#| hide: true
+#| echo: FALSE
+
+# 코로나19 데이터를 웹클릭 데이터로 변환
+library(tidyverse)
+# devtools::install_github("scidesign/scidesignR")
+library(scidesignR)
+
+ab_testing_rds <- covid19_trial %>% 
+  rename(고객     = patient,
+         AB테스팅 = trt,
+         구매여부 = die_hosp,
+         연령     = age) %>% 
+  mutate(AB테스팅 = ifelse(AB테스팅 == "TRT", "변경후", "변경전")) 
+
+dir.create("data")
+ab_testing_rds %>% 
+  write_rds("data/ab_testing.rds")
+```
+
+## 문제 정의 및 목표설정
+
+기존 제품의 가격을 인하하게 되면 가격인하로 인해 매출도 늘고 경쟁업체에 고객 이탈도 막을 수 있다는 내부 검토를 거쳐 문제를 정의하고 목표를 설정한다.
+
+
+## 기술 통계
+
+기존 가격을 인한한 후, 특정 기간동안 구매자 변화를 기록하여 분석한다.
+기존 1만인 제품을 1천원 내려 구매량의 변화를 살펴보자.
+
+- 변경전: 1만원
+- 변경후: 9천원
+
+:::{.panel-tabset}
+
+### 요약표
+
+```{r}
+library(tidyverse)
+library(janitor)
+library(gt)
+
+ab_testing_rds <- 
+  read_rds("data/ab_testing.rds")
+
+ab_testing_rds %>% 
+  # 데이터프레임 --> 표
+  tabyl(구매여부, AB테스팅) %>%
+  # 표 부가 정보
+    adorn_totals(where=c("row", "col")) %>%
+    adorn_percentages(denominator = "col") %>%
+    adorn_ns(position = "front") %>% 
+  # 외양
+  gt() %>% 
+    tab_header(
+      title = md("웹사이트 **변경** 구매변화"),
+      subtitle = "A/B 테스팅"
+    ) %>% 
+    tab_spanner(
+      label = "A/B 테스팅",
+      id    = "ab_testing",
+      columns = c(변경전, 변경후)
+    ) %>% 
+    cols_align(
+      align = "center",
+      columns = c(구매여부, Total)
+    ) %>% 
+    tab_source_note(
+      source_note = md(
+        "출처: 그로쓰 마케팅 추진 1팀"
+      )
+    ) %>% 
+    tab_footnote(
+      footnote = "A/B 테스팅: 제품 가격변경 전후 실험",
+      locations = cells_column_spanners(spanners = "ab_testing")
+    )  
+  
+```
+
+### 시각화
+
+```{r}
+ab_testing_rds %>% 
+  count(AB테스팅, 구매여부, name = "구매고객수") %>% 
+  ggplot(aes(x = 구매여부, y = 구매고객수, fill = AB테스팅)) +
+    geom_col(width = 0.5, position = "dodge") +
+    scale_y_continuous(limits = c(0,10), breaks = 0:10) +
+    labs(x = "구매여부",
+         y = "구매고객수",
+         title = "웹사이트 가격 변경전후 A/B 테스팅") +
+    scale_fill_manual("AB테스팅", values = c("변경후" = "black",
+                                              "변경전" = "lightgrey")) +
+    theme_light()
+```
+ 
+:::
+
+## 통계 검정
+
+상기 기술통계 및 시각화를 통해 가격변경 후 구매율이 높아진 것은 사실이다. 
+하지만, 이와 같은 차이가 우연에 의한 일시적 현상인지 아니면 통계적으로 가격인하 효과가
+실제로 존재하는지 통계검정을 통해 확인한다.
+
+$\hat{p}_{변경전} = 0.1$ 구매율에서 가격인하에 따른 구매율이 $\hat{p}_{변경후} = 0.2$ 로 올라간 상황이 실질적인 가격인하효과에 따른 구매율 변동이 있다는 주장에 대해 $n=10$ 방문객을 대상으로 판단하기는 이르다는 것이 $p-값$ 이 신뢰수준 95%에서 나타나고 있다. 
+
+[**`prop.test()` 검정통계량:** 두집단 비율을 비교하는 $Z$-검정은 독립성 $\chi^2$ 검정과 동치이다.
+`prop.test()` 함수는 형식적으로 $\chi^2$ 검정을 구한다.
+따라서, $\chi^2$ 검정에서 나온 `p-값`과 두집단 비율에 대한 $Z$-검정에서 나온 `p-값`은 같다. $\chi^2$ 값에 제곱근을 씌우면 $Z-통계량$을 구할 수 있다.]{.aside} 
+
+
+```{r}
+ab_testing_setup <- ab_testing_rds %>% 
+  mutate(구매여부 = as.integer(구매여부) - 1 ) %>% 
+  group_by(AB테스팅) %>% 
+  summarise(구매율 = mean(구매여부),
+            구매자수 = sum(구매여부),
+            전체     = n())
+
+ab_testing_setup %>% 
+    # 외양
+  gt() %>% 
+    tab_header(
+      title = md("웹사이트 **변경** 구매변화"),
+      subtitle = "A/B 테스팅 통계 검정"
+    ) %>% 
+    tab_spanner(
+      label = "방문자수 대비 구매자수",
+      columns = c(구매자수, 전체)
+    ) %>% 
+    cols_align(
+      align = "center",
+      columns = everything()
+    ) %>% 
+    fmt_percent(
+      columns = 구매율,
+      decimals = 1
+    )
+```
+
+
+
+```{r}
+ab_testing <- prop.test(x = c(1,2), n = c(10,10),  alternative = "less", correct = FALSE)
+
+p_value <- broom::tidy(ab_testing) %>% 
+  select(p.value)  %>% 
+  pull(p.value)
+
+```
+
+
+`p-값`이 `r scales::pvalue(p_value)` 으로 유의수준 0.05보다 크기 때문에 귀무가설을 기각할 수 없어 구매자가 1명 늘었지만 효과가 있다고 단정하기는 이르다고 볼 수 있다.

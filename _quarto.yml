@@ -1,0 +1,61 @@
+project:
+  title: "dynamic-prcing"
+  type: website
+  output-dir: docs
+
+website:
+  title: "Dynamic Pricing"
+  navbar:
+    left:
+      - href: index.qmd
+        text: Home
+      - href: background.qmd
+        text: "Part 0"
+      - text: "Part I - R"
+        menu:
+        - href: pricing.qmd
+          text: "가격결정 중요성"
+        - href: demand_curve.qmd
+          text: "(통계)수요곡선"
+        - href: price_opt.qmd
+          text: "가격변동과 최적화"
+        - href: cvp.qmd
+          text: "[외전] CVP 분석"
+      - text: "Part II - R"
+        menu:
+        - href: ab_testing.qmd
+          text: "A/B Testing"
+        - href: bayesian.qmd
+          text: "(베이지안) 통계"
+        - href: thompson.qmd
+          text: "톰슨 샘플링"
+      - text: "Part I - Py"
+        menu:
+        - href: pricing.qmd
+          text: "가격결정 중요성"
+        - href: py_demand_curve.qmd
+          text: "(통계)수요곡선"
+      - text: "Part II - Py"
+        menu:
+        - href: py_ab_testing.qmd
+          text: "A/B Testing"
+        - href: py_bayesian.qmd
+          text: "(베이지안) 통계"
+        # - href: thompson.qmd
+        #   text: "톰슨 샘플링"
+      
+format:
+  html:
+    theme: cosmo
+    css: styles.css
+    toc: true
+    toc-location: right
+    toc-title: "목차"
+    code-fold: true
+    code-tools: true    
+    code-summary: "코드 보기"
+    number-sections: true
+
+execute: 
+  freeze: true
+

@@ -1,0 +1,130 @@
+---
+title: "A/B 테스팅"
+filters:
+   - lightbox
+lightbox: auto
+editor_options: 
+  chunk_output_type: console
+jupyter: python3
+---
+
+# 가격을 찾아가는 과정
+
+가격을 인상하거나 인하하게 되면 경제상황과 시장경쟁강도에 따라 수요가 탄력적으로 변화하게 된다. 다른 조건을 다 동일하게 두고 가격을 올리는 것이 유리한지 가격을 내리는 것이 유리한지 가격을 변동하게 되면 얼마의 가격변동폭을 두여야하는지 근거가 있다면 바로 실행하면 되고 만약 가격 변동에 따른 유불리를 판단할 수 없다면 실험을 설계하여 사업목표 달성을 위해 나아가는 것도 한 방법이다.
+
+
+![](images/ab-testing.png)
+
+실험을 여러가지 방식으로 설계를 할 수 있지만 가장 큰 대원칙은 다른 조건은 모두 동일하게 하고 단 하나의 요인만 변동을 시키고 실험의 효과를 정확히 관측하기 위해 모집단에서 표본을 동일하게 **실험군**(가격을 인상 혹은 인하)과 **대조군**(가격을 기존 가격 그대로 유지)으로 나눠 구매여부 혹은 클릭여부 등 실험목표에 유의적인 차이가 있는지를 데이터를 통해 확인하는 것이다.
+
+여기서 목표를 새로운 가격대를 탐색하는 것이 목적인지 예를 들어 시장에 전혀 나온적인 없는 신제품의 경우 가격 탐색을 목적으로 A/B 테스팅을 기획할 수 도 있다. 목표를 설정하고 문제를 해결할 것인지 새로운 기회를 찾을 것인지 정한 후에, 영역을 특정한 후에 가설을 세워 실제 데이터를 통해 검증하고 마지막으로 결과를 도출한다. 이 모든 과정에 데이터는 필수적으로 동반된다.
+
+
+:::{.callout-note}
+**A/B 테스팅 작업흐름**
+
+목표설정 &rarr; 영역 설정 (문제/기회) &rarr; 가설 설정 &rarr; (가설) 검정 &rarr; 의사결정
+:::
+
+
+
+# A/B 테스팅
+
+```{python}
+#| eval: true
+#| hide: true
+#| echo: FALSE
+
+import pandas as pd
+
+ab_testing = pd.read_csv('data/ab_testing.csv')
+ab_testing.head()
+```
+
+## 문제 정의 및 목표설정
+
+기존 제품의 가격을 인하하게 되면 가격인하로 인해 매출도 늘고 경쟁업체에 고객 이탈도 막을 수 있다는 내부 검토를 거쳐 문제를 정의하고 목표를 설정한다.
+
+
+## 기술 통계
+
+기존 가격을 인한한 후, 특정 기간동안 구매자 변화를 기록하여 분석한다.
+기존 1만인 제품을 1천원 내려 구매량의 변화를 살펴보자.
+
+- 변경전: 1만원
+- 변경후: 9천원
+
+:::{.panel-tabset}
+
+### 요약표
+
+```{python}
+ab_testing_long = ab_testing.groupby(['AB테스팅', '구매여부'], as_index=False)['고객'].count()
+
+ab_testing_wide = pd.pivot(ab_testing_long, index = '구매여부', columns = 'AB테스팅', values='고객')
+
+ab_testing_wide['합계'] =  ab_testing_wide['변경전'] + ab_testing_wide['변경후']
+
+ab_testing_wide  
+```
+
+### 시각화
+
+```{python}
+import matplotlib.pyplot as plt
+plt.rcParams['font.family'] = 'NanumGothic'
+
+x_val = ab_testing_wide.index
+before_val = ab_testing_wide['변경전']
+after_val  = ab_testing_wide['변경후']
+width = 0.30
+
+plt.bar(x_val-0.2, before_val, width)
+plt.bar(x_val+0.2, after_val, width)
+plt.xticks(x_val, ['0', '1'])
+
+plt.title('웹사이트 가격 변경전후 A/B 테스팅')
+plt.xlabel('구매여부')
+plt.ylabel('구매구객수')
+
+plt.show()
+```
+ 
+:::
+
+## 통계 검정
+
+상기 기술통계 및 시각화를 통해 가격변경 후 구매율이 높아진 것은 사실이다. 
+하지만, 이와 같은 차이가 우연에 의한 일시적 현상인지 아니면 통계적으로 가격인하 효과가
+실제로 존재하는지 통계검정을 통해 확인한다.
+
+$\hat{p}_{변경전} = 0.1$ 구매율에서 가격인하에 따른 구매율이 $\hat{p}_{변경후} = 0.2$ 로 올라간 상황이 실질적인 가격인하효과에 따른 구매율 변동이 있다는 주장에 대해 $n=10$ 방문객을 대상으로 판단하기는 이르다는 것이 $p-값$ 이 신뢰수준 95%에서 나타나고 있다. 
+
+
+```{python}
+ab_testing.groupby(['구매여부', 'AB테스팅'], as_index=False)['고객'].count() 
+
+ab_testing_prop = pd.pivot(ab_testing_long, index = 'AB테스팅', columns = '구매여부', values='고객').add_prefix('구매_')
+
+ab_testing_prop['합계'] = ab_testing_prop['구매_0'] + ab_testing_prop['구매_1']
+ab_testing_prop['구매율'] = ab_testing_prop['구매_1'] / ab_testing_prop['합계']
+
+ab_testing_prop
+```
+
+
+
+```{python}
+import numpy as np
+from statsmodels.stats.proportion import proportions_ztest
+
+purchased = ab_testing_prop['구매_1'].tolist()
+prospect = ab_testing_prop['합계'].tolist()
+
+stat, pval = proportions_ztest(purchased, prospect, alternative = 'smaller')
+print('{0:0.3f}'.format(pval))
+
+```
+
+
+`p-값`이 **0.266** 으로 유의수준 0.05보다 크기 때문에 귀무가설을 기각할 수 없어 구매자가 1명 늘었지만 효과가 있다고 단정하기는 이르다고 볼 수 있다.

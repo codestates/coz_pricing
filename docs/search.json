@@ -1,0 +1,639 @@
+[
+  {
+    "objectID": "ab_testing.html",
+    "href": "ab_testing.html",
+    "title": "A/B 테스팅",
+    "section": "",
+    "text": "가격을 인상하거나 인하하게 되면 경제상황과 시장경쟁강도에 따라 수요가 탄력적으로 변화하게 된다. 다른 조건을 다 동일하게 두고 가격을 올리는 것이 유리한지 가격을 내리는 것이 유리한지 가격을 변동하게 되면 얼마의 가격변동폭을 두여야하는지 근거가 있다면 바로 실행하면 되고 만약 가격 변동에 따른 유불리를 판단할 수 없다면 실험을 설계하여 사업목표 달성을 위해 나아가는 것도 한 방법이다.\n\n\n\n\n\n실험을 여러가지 방식으로 설계를 할 수 있지만 가장 큰 대원칙은 다른 조건은 모두 동일하게 하고 단 하나의 요인만 변동을 시키고 실험의 효과를 정확히 관측하기 위해 모집단에서 표본을 동일하게 실험군(가격을 인상 혹은 인하)과 대조군(가격을 기존 가격 그대로 유지)으로 나눠 구매여부 혹은 클릭여부 등 실험목표에 유의적인 차이가 있는지를 데이터를 통해 확인하는 것이다.\n여기서 목표를 새로운 가격대를 탐색하는 것이 목적인지 예를 들어 시장에 전혀 나온적인 없는 신제품의 경우 가격 탐색을 목적으로 A/B 테스팅을 기획할 수 도 있다. 목표를 설정하고 문제를 해결할 것인지 새로운 기회를 찾을 것인지 정한 후에, 영역을 특정한 후에 가설을 세워 실제 데이터를 통해 검증하고 마지막으로 결과를 도출한다. 이 모든 과정에 데이터는 필수적으로 동반된다.\n\n\n\n\n\n\nNote\n\n\n\nA/B 테스팅 작업흐름\n목표설정 → 영역 설정 (문제/기회) → 가설 설정 → (가설) 검정 → 의사결정"
+  },
+  {
+    "objectID": "ab_testing.html#문제-정의-및-목표설정",
+    "href": "ab_testing.html#문제-정의-및-목표설정",
+    "title": "A/B 테스팅",
+    "section": "2.1 문제 정의 및 목표설정",
+    "text": "2.1 문제 정의 및 목표설정\n기존 제품의 가격을 인하하게 되면 가격인하로 인해 매출도 늘고 경쟁업체에 고객 이탈도 막을 수 있다는 내부 검토를 거쳐 문제를 정의하고 목표를 설정한다."
+  },
+  {
+    "objectID": "ab_testing.html#기술-통계",
+    "href": "ab_testing.html#기술-통계",
+    "title": "A/B 테스팅",
+    "section": "2.2 기술 통계",
+    "text": "2.2 기술 통계\n기존 가격을 인한한 후, 특정 기간동안 구매자 변화를 기록하여 분석한다. 기존 1만인 제품을 1천원 내려 구매량의 변화를 살펴보자.\n\n변경전: 1만원\n변경후: 9천원\n\n\n요약표시각화\n\n\n\n\n코드 보기\nlibrary(tidyverse)\n#> ── Attaching packages ─────────────────────────────────────── tidyverse 1.3.1 ──\n#> ✔ ggplot2 3.3.6      ✔ purrr   0.3.4 \n#> ✔ tibble  3.1.8      ✔ dplyr   1.0.10\n#> ✔ tidyr   1.2.1      ✔ stringr 1.4.1 \n#> ✔ readr   2.1.2      ✔ forcats 0.5.2\n#> Warning: 패키지 'tibble'는 R 버전 4.2.1에서 작성되었습니다\n#> Warning: 패키지 'tidyr'는 R 버전 4.2.1에서 작성되었습니다\n#> Warning: 패키지 'dplyr'는 R 버전 4.2.1에서 작성되었습니다\n#> Warning: 패키지 'stringr'는 R 버전 4.2.1에서 작성되었습니다\n#> Warning: 패키지 'forcats'는 R 버전 4.2.1에서 작성되었습니다\n#> ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──\n#> ✖ dplyr::filter() masks stats::filter()\n#> ✖ dplyr::lag()    masks stats::lag()\nlibrary(janitor)\n#> \n#> 다음의 패키지를 부착합니다: 'janitor'\n#> The following objects are masked from 'package:stats':\n#> \n#>     chisq.test, fisher.test\nlibrary(gt)\n#> Warning: 패키지 'gt'는 R 버전 4.2.1에서 작성되었습니다\n\nab_testing_rds <- \n  read_rds(\"data/ab_testing.rds\")\n\nab_testing_rds %>% \n  # 데이터프레임 --> 표\n  tabyl(구매여부, AB테스팅) %>%\n  # 표 부가 정보\n    adorn_totals(where=c(\"row\", \"col\")) %>%\n    adorn_percentages(denominator = \"col\") %>%\n    adorn_ns(position = \"front\") %>% \n  # 외양\n  gt() %>% \n    tab_header(\n      title = md(\"웹사이트 **변경** 구매변화\"),\n      subtitle = \"A/B 테스팅\"\n    ) %>% \n    tab_spanner(\n      label = \"A/B 테스팅\",\n      id    = \"ab_testing\",\n      columns = c(변경전, 변경후)\n    ) %>% \n    cols_align(\n      align = \"center\",\n      columns = c(구매여부, Total)\n    ) %>% \n    tab_source_note(\n      source_note = md(\n        \"출처: 그로쓰 마케팅 추진 1팀\"\n      )\n    ) %>% \n    tab_footnote(\n      footnote = \"A/B 테스팅: 제품 가격변경 전후 실험\",\n      locations = cells_column_spanners(spanners = \"ab_testing\")\n    )  \n\n\n\n\n\n\n  \n    \n      웹사이트 변경 구매변화\n    \n    \n      A/B 테스팅\n    \n  \n  \n    \n      구매여부\n      \n        A/B 테스팅1\n      \n      Total\n    \n    \n      변경전\n      변경후\n    \n  \n  \n    0\n 9 (0.9)\n 8 (0.8)\n17 (0.85)\n    1\n 1 (0.1)\n 2 (0.2)\n 3 (0.15)\n    Total\n10   (1)\n10   (1)\n20    (1)\n  \n  \n    \n      출처: 그로쓰 마케팅 추진 1팀\n    \n  \n  \n    \n      1 A/B 테스팅: 제품 가격변경 전후 실험\n    \n  \n\n\n\n\n\n\n\n\n코드 보기\nab_testing_rds %>% \n  count(AB테스팅, 구매여부, name = \"구매고객수\") %>% \n  ggplot(aes(x = 구매여부, y = 구매고객수, fill = AB테스팅)) +\n    geom_col(width = 0.5, position = \"dodge\") +\n    scale_y_continuous(limits = c(0,10), breaks = 0:10) +\n    labs(x = \"구매여부\",\n         y = \"구매고객수\",\n         title = \"웹사이트 가격 변경전후 A/B 테스팅\") +\n    scale_fill_manual(\"AB테스팅\", values = c(\"변경후\" = \"black\",\n                                              \"변경전\" = \"lightgrey\")) +\n    theme_light()"
+  },
+  {
+    "objectID": "ab_testing.html#통계-검정",
+    "href": "ab_testing.html#통계-검정",
+    "title": "A/B 테스팅",
+    "section": "2.3 통계 검정",
+    "text": "2.3 통계 검정\n상기 기술통계 및 시각화를 통해 가격변경 후 구매율이 높아진 것은 사실이다. 하지만, 이와 같은 차이가 우연에 의한 일시적 현상인지 아니면 통계적으로 가격인하 효과가 실제로 존재하는지 통계검정을 통해 확인한다.\n\\(\\hat{p}_{변경전} = 0.1\\) 구매율에서 가격인하에 따른 구매율이 \\(\\hat{p}_{변경후} = 0.2\\) 로 올라간 상황이 실질적인 가격인하효과에 따른 구매율 변동이 있다는 주장에 대해 \\(n=10\\) 방문객을 대상으로 판단하기는 이르다는 것이 \\(p-값\\) 이 신뢰수준 95%에서 나타나고 있다.\nprop.test() 검정통계량: 두집단 비율을 비교하는 \\(Z\\)-검정은 독립성 \\(\\chi^2\\) 검정과 동치이다. prop.test() 함수는 형식적으로 \\(\\chi^2\\) 검정을 구한다. 따라서, \\(\\chi^2\\) 검정에서 나온 p-값과 두집단 비율에 대한 \\(Z\\)-검정에서 나온 p-값은 같다. \\(\\chi^2\\) 값에 제곱근을 씌우면 \\(Z-통계량\\)을 구할 수 있다.\n\n\n코드 보기\nab_testing_setup <- ab_testing_rds %>% \n  mutate(구매여부 = as.integer(구매여부) - 1 ) %>% \n  group_by(AB테스팅) %>% \n  summarise(구매율 = mean(구매여부),\n            구매자수 = sum(구매여부),\n            전체     = n())\n\nab_testing_setup %>% \n    # 외양\n  gt() %>% \n    tab_header(\n      title = md(\"웹사이트 **변경** 구매변화\"),\n      subtitle = \"A/B 테스팅 통계 검정\"\n    ) %>% \n    tab_spanner(\n      label = \"방문자수 대비 구매자수\",\n      columns = c(구매자수, 전체)\n    ) %>% \n    cols_align(\n      align = \"center\",\n      columns = everything()\n    ) %>% \n    fmt_percent(\n      columns = 구매율,\n      decimals = 1\n    )\n\n\n\n\n\n\n  \n    \n      웹사이트 변경 구매변화\n    \n    \n      A/B 테스팅 통계 검정\n    \n  \n  \n    \n      AB테스팅\n      구매율\n      \n        방문자수 대비 구매자수\n      \n    \n    \n      구매자수\n      전체\n    \n  \n  \n    변경전\n10.0%\n1\n10\n    변경후\n20.0%\n2\n10\n  \n  \n  \n\n\n\n\n\n\n코드 보기\nab_testing <- prop.test(x = c(1,2), n = c(10,10),  alternative = \"less\", correct = FALSE)\n#> Warning in prop.test(x = c(1, 2), n = c(10, 10), alternative = \"less\", correct =\n#> FALSE): 카이제곱 approximation은 정확하지 않을수도 있습니다\n\np_value <- broom::tidy(ab_testing) %>% \n  select(p.value)  %>% \n  pull(p.value)\n\n\np-값이 0.266 으로 유의수준 0.05보다 크기 때문에 귀무가설을 기각할 수 없어 구매자가 1명 늘었지만 효과가 있다고 단정하기는 이르다고 볼 수 있다."
+  },
+  {
+    "objectID": "background.html",
+    "href": "background.html",
+    "title": "Dynamic Pricing 배경",
+    "section": "",
+    "text": "동적가격책정 (Dynamic Pricing)은 취업을 위해 업무적으로 필요한 기본지식이기도 하지만, 현시대를 살아가는 소비자로서 호구가 되지 않고 구매한 제품과 서비스에 적정한 가치를 평가할 수 있는 기본소양이 된다. 반대로, 제품과 서비스를 판매하여 매출과 이익을 올리는 판매자입장에서는 고객가치를 훼손하지 않는 선에서 장기적으로 매출과 이익 극대화를 위해 적절한 가격설정은 사업목표를 달성하는데 큰 도구이자 자산이다.\n동적가격책정은 가격차별(price discrimination)과 뿌리를 공유하며 소비자에게 서로 다른 가격이 종교, 지역, 인종, 성별, 출신학교, 정당, 나이 등에 기반하지 않는다고 하면 일반적으로 용인된다.\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nFigure 1: 유명한 국내외 동적가격정책 밈(Dynamic Pricing Memes)\n\n\n\n\n\n\n\n\n동적가격책정 (Dynamic Pricing)\n\n\n\nDynamic Pricing은 가격책정전략의 하나로 탄력요금책정(surge pricing), 수요가격책정(demand pricing), or 시간기반가격책정(time-based pricing)이라고 부르며 현재 시장 수요와 공급, 경쟁상황 등 다양한 요소를 고려하여 유연하게 가격을 설정하는 방식을 통칭한다.\n\n\n\n출처: 위키백과사전 Dynamic pricing"
+  },
+  {
+    "objectID": "background.html#마이크로웨이브-가격",
+    "href": "background.html#마이크로웨이브-가격",
+    "title": "Dynamic Pricing 배경",
+    "section": "2.1 마이크로웨이브 가격",
+    "text": "2.1 마이크로웨이브 가격\nAlberto Cervantes가 미국 유명 소매업체에서 판매되고 있는 마이크로웨이브(Microwaw)가격을 대상으로 일별 가격변화를 시각화하는 것에 뚜렷한 변화가 있음을 확인할 수 있다. 씨어스는 일별 변화가 없는 반면 베스트 바이는 저녁시간에 한정하여 가격이 변화하는 반면 아마존은 시간대를 세분화하여 가격을 내리고 올리고 달리하고 있다."
+  },
+  {
+    "objectID": "background.html#추수감사절-할인",
+    "href": "background.html#추수감사절-할인",
+    "title": "Dynamic Pricing 배경",
+    "section": "2.2 추수감사절 할인",
+    "text": "2.2 추수감사절 할인\n추수감사절 할인(Black Friday)은 미국에서 추수감사절(매년 11월 네번째 주 목요일) 다음날인 금요일부터 크리스마스/새해까지 마트나 회사에서 재고떨이하는 기간으로 미국인들이 활발히 소비하는 기간이다.\nBest Time to Buy 인포그래픽을 통해 세간에 알려진 것과 달리 각 제품과 서비스별로 서로 다른 가격이 적용됨을 알 수 있다."
+  },
+  {
+    "objectID": "background.html#우버",
+    "href": "background.html#우버",
+    "title": "Dynamic Pricing 배경",
+    "section": "2.3 우버",
+    "text": "2.3 우버\n동적가격정책을 가장 많이 홍보하고 있는 우버의 경우 시간대별로 다른 가격을 설정하고 지역별로도 다른 가격을 설정하여 사업목표를 극대화하고 있다. 출처: Todd W. Schneider, “Reverse Engineering Uber and Lyft Surge Pricing in Chicago”\n\n\nVideo"
+  },
+  {
+    "objectID": "bayesian.html",
+    "href": "bayesian.html",
+    "title": "베이지안 통계",
+    "section": "",
+    "text": "동적가격책정(Dynamic Pricing) 방법론으로 자주 언급되는 톰슨 샘플링(Thompson Sampling)은 베이지안 통계 방법론에 근간을 두고 있다. 기존 사람이 다양한 연구를 바탕으로 가격을 선정하여 캠페인 등을 통해 실행에 옮기거나 A/B 테스팅과 같이 실험을 반복해서 주기적으로 최적 가격을 옮겨가는 방식이 아니라 톰슨 샘플링을 통해 최적의 가격을 실시간으로 책정하며 동적으로 유지하는 체계를 갖추기 위해 가장 기본이 되는 베타분포와 베르누이분포를 먼저 이해해야 한다.\n톰슨 샘플링을 통해 풀려고 하는 문제는 가격정책을 몇가지로 지정한 후 예를 들어 3가지로 정했다고 가정하면 3가지 가격정책을 고객에게 보여주고 실시간으로 구매 혹은 비구매, 클릭 혹은 비클릭, 가입 혹은 비가입과 같은 성공 혹은 실패 결과를 얻고 이를 다시 가격정책에 반영하여 최적 가격을 찾아가는 방식이다.\n이와 같은 동적 가격결정 방식을 구현하기 위해 수학적으로 가장 단순한 성공과 실패를 모형화하는데 베르누이 분포를 가정하고 지속적인 사후 확률분포 갱신을 위해 베르누이 분포의 켤레 사전분포로 베타분포를 선택하여 사후확률도 베타분포가 나오도록 하여 설계한다."
+  },
+  {
+    "objectID": "bayesian.html#감마와-베타-함수",
+    "href": "bayesian.html#감마와-베타-함수",
+    "title": "베이지안 통계",
+    "section": "1.1 감마와 베타 함수",
+    "text": "1.1 감마와 베타 함수\n베타함수는 다음과 같은 \\(\\Gamma\\) 함수로 표현할 수 있다. \\(\\Gamma\\) 함수는 자연수의 계승 또는 팩토리얼(factorial)을 의미하며 수식으로 표현하면 다음과 같다.\n\\[\\Gamma(n) = (n-1)!\\]\n베타함수는 이항분포에 나오는 이항계수를 실수범위로 확장하여 일반화하는 형태로 알려져 있다.\n\\[Beta(\\alpha, \\beta)=\\frac{\\Gamma(\\alpha)\\,\\Gamma(\\beta)}{\\Gamma(\\alpha+\\beta)}\\]"
+  },
+  {
+    "objectID": "bayesian.html#베타-분포-1",
+    "href": "bayesian.html#베타-분포-1",
+    "title": "베이지안 통계",
+    "section": "1.2 베타 분포",
+    "text": "1.2 베타 분포\n베타분포는 베르누이, 이항, 음이항, 기하 분포의 켤레 사전분포(Conjugate Prior)이면서 0과 1사이 비율과 퍼센트지 무작위 사건을 모형화하는데 유용하다. 예를 들어, 구매/비구매, 전환율 등이 0과 1사이 비율을 갖는 비결정사건으로 대입해볼 수 있다.\n사후 확률(Posterior Probability)이 사전 확률(Prior Probability) 분포와 같은 분포 계열에 속하는 경우 그 사전확률분포를 켤레 사전분포(Conjugate Prior)라고 하고 이 경우 사후확률을 계산하기 쉬운 장점이 크다.\n\\[Beta(\\alpha,\\beta):\\,\\, prob(x|\\alpha,\\beta)=\\frac{\\Gamma(\\alpha+\\beta)}{{\\Gamma(\\alpha)\\,\\Gamma(\\beta)}}x^{\\alpha-1}(1-x)^{\\beta-1}\\\\=\\frac{x^{\\alpha-1}(1-x)^{\\beta-1}}{B(\\alpha,\\beta)}\\]\n베타분포의 평균과 분산은 \\(\\alpha\\)와 \\(\\beta\\) 형태 모수를 사용하여 계산할 수 있다.\n\\[E(x)=\\mu = \\frac{\\alpha}{\\alpha + \\beta}\\]\n\\[V(x)=\\frac{\\alpha\\beta}{(\\alpha+\\beta)^{2}(\\alpha+\\beta+1)}\\]"
+  },
+  {
+    "objectID": "bayesian.html#시각화",
+    "href": "bayesian.html#시각화",
+    "title": "베이지안 통계",
+    "section": "1.3 시각화",
+    "text": "1.3 시각화\n예를 들어, \\(\\alpha=2,\\beta=2\\) 형태모수를 갖는 \\(Beta(\\alpha=2,\\beta=2)\\) 함수는 최고차항이 음의부호를 갖는 2차 방정식모양으로 표현할 수 있다. \\(\\alpha,\\beta\\) 형태모수를 달리하여 0 과 1 사이 유연하게 다양한 함수형태를 모형화할 수 있는 것이 보여주고 있다.\n\\[Beta(\\alpha=2,\\beta=2):\\,\\, prob(x|\\alpha,\\beta)=\\frac{\\Gamma(2+2)}{{\\Gamma(2)\\,\\Gamma(2)}}x^{2-1}(1-x)^{2-1}\\\\=\\frac{\\Gamma(4)}{{\\Gamma(2)\\,\\Gamma(2)}}x(1-x)=상수\\times(x-x^2)\\]\n\n\n코드 보기\nlibrary(tidyverse)\n#> ── Attaching packages ─────────────────────────────────────── tidyverse 1.3.1 ──\n#> ✔ ggplot2 3.3.6      ✔ purrr   0.3.4 \n#> ✔ tibble  3.1.8      ✔ dplyr   1.0.10\n#> ✔ tidyr   1.2.1      ✔ stringr 1.4.1 \n#> ✔ readr   2.1.2      ✔ forcats 0.5.2\n#> Warning: 패키지 'tibble'는 R 버전 4.2.1에서 작성되었습니다\n#> Warning: 패키지 'tidyr'는 R 버전 4.2.1에서 작성되었습니다\n#> Warning: 패키지 'dplyr'는 R 버전 4.2.1에서 작성되었습니다\n#> Warning: 패키지 'stringr'는 R 버전 4.2.1에서 작성되었습니다\n#> Warning: 패키지 'forcats'는 R 버전 4.2.1에서 작성되었습니다\n#> ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──\n#> ✖ dplyr::filter() masks stats::filter()\n#> ✖ dplyr::lag()    masks stats::lag()\n\nbeta_param <- tribble(~\"alpha\", ~\"beta\",\n                      0.5, 0.5,\n                      2,  5,\n                      5,  1,\n                      2,  2)\n\nbeta_tbl <- beta_param %>% \n  mutate(x = map2(0, 1, seq, length = 100)) %>% \n  unnest(x) %>% \n  mutate(fx = pmap_dbl(list(x, alpha, beta), dbeta)) %>%   \n  mutate(분포 = glue::glue(\"Beta(\\u03b1:{alpha}, \\u03b2:{beta})\"))\n\nbeta_tbl %>% \n  ggplot(aes(x = x, y = fx, color = 분포)) +\n    geom_line() +\n    facet_wrap(~분포, scales = \"free\") +\n    theme_light() +\n    theme(legend.position = \"none\") +\n    labs(title = \"형태모수((\\u03b1, \\u03b2)를 달리한 베타분포\",\n         x     = \"x\",\n         y     = \"f(x)\")"
+  },
+  {
+    "objectID": "bayesian.html#베타분포-alpha-beta",
+    "href": "bayesian.html#베타분포-alpha-beta",
+    "title": "베이지안 통계",
+    "section": "1.4 베타분포 \\(\\alpha, \\beta\\)",
+    "text": "1.4 베타분포 \\(\\alpha, \\beta\\)\n베타분포 형태모수 \\(\\alpha, \\beta\\)를 달리할 때 분포의 모양을 살펴보자. 추후 베이지안 갱신을 통해 사후 베타분포가 베르누이 분포와 켤레분포로 사용될 경우 \\(\\alpha, \\beta\\) 값을 성공과 실패로 갱신할 땔 분포의 변화를 이해하는데 도움이 될 것이다.\n\n\n코드 보기\nbeta_param <- tribble(~\"alpha\", ~\"beta\",\n                      0, 0,\n                      1, 0,\n                      0, 1,\n                      1, 1,\n                      2, 1,\n                      3, 1,\n                      1, 1,\n                      1, 2,\n                      1, 3,\n                      4, 1,\n                      4, 2,\n                      4, 3,\n                      4, 4)\n\nbeta_tbl <- beta_param %>% \n  mutate(x = map2(0, 1, seq, length = 100)) %>% \n  unnest(x) %>% \n  mutate(fx = pmap_dbl(list(x, alpha, beta), dbeta)) %>%   \n  mutate(분포 = glue::glue(\"Beta(\\u03b1:{alpha}, \\u03b2:{beta})\"))\n\nbeta_tbl %>% \n  ggplot(aes(x = x, y = fx, color = 분포)) +\n  geom_line() +\n  facet_wrap(~분포, scales = \"free\", ncol = 3) +\n  theme_light() +\n  theme(legend.position = \"none\") +\n  labs(title = \"형태모수((\\u03b1, \\u03b2)를 달리한 베타분포\",\n       x     = \"x\",\n       y     = \"f(x)\")"
+  },
+  {
+    "objectID": "bayesian.html#구매-혹은-비구매",
+    "href": "bayesian.html#구매-혹은-비구매",
+    "title": "베이지안 통계",
+    "section": "2.1 구매 혹은 비구매",
+    "text": "2.1 구매 혹은 비구매\n오프라인에서 고객별로 구매 혹은 비구매, 온라인에서는 구독 혹은 비구독, 클릭 혹은 비클릭 등과 같이 고객의 행동을 달리 표현할 수 있다. 이와 같은 구매 혹은 비구매는 성공 혹은 실패를 나타내는 베르누이 시행으로 표현할 수 있다. 여기서 \\(\\theta\\)는 구매확률을 나타낸다.\n\\[X \\sim Bernoulli (\\theta)\\] 확률밀도함수는 다음과 같다. 여기서 \\(\\theta=0,1\\) 성공과 실패값을 갖게 된다.\n\\[p(x|\\theta) = \\theta^x (1-\\theta)^{1-x}\\]"
+  },
+  {
+    "objectID": "bayesian.html#가능도",
+    "href": "bayesian.html#가능도",
+    "title": "베이지안 통계",
+    "section": "2.2 가능도",
+    "text": "2.2 가능도\n사후확률은 사전확률 곱하기 가능도로 정의된다. 따라서, 사전확률은 \\(Beta(\\alpha, \\beta)\\)로 정의하고 베르누이 가능도 함수를 구해 둘을 곱하게 되면 사후확률을 구할 수 있다. 먼저 가능도는 다음과 같이 계산된다.\n\\[\nL(\\theta;x) = p(\\{x_i\\}|\\theta) = \\prod_{i} p(x_i|\\theta)\\\\ = \\prod_{i} \\theta^{x_i}(1-\\theta)^{1-x_i}\\\\=\\theta^{\\sum_{i}{x_i}}(1-\\theta)^{\\sum_i{(1-x_i )}}\\\\=\\theta^{구매횟수}(1-\\theta)^{비구매횟수}\n\\]"
+  },
+  {
+    "objectID": "bayesian.html#사후확률",
+    "href": "bayesian.html#사후확률",
+    "title": "베이지안 통계",
+    "section": "2.3 사후확률",
+    "text": "2.3 사후확률\n베르누이분포의 사전확률 켤레분포가 베타분포로 치환하여 둘을 곱하게 되면 사후확률을 구할 수 있다.\n\\[\np(\\theta|z,N) = \\frac{p(z,N|\\theta)p(\\theta)}{p(z,N)} \\approx\nL(\\theta;x) \\times p(\\theta)\n\\]\n사전분포를 베타분포로 두고 베르누이분포의 가능도 함수를 활용하여 사후확률을 구하면 다음과 같이 수식으로 표현할 수 있다.\n\\[\n\\begin{aligned}\np(\\theta \\mid X)\n&\\propto \\theta^{\\alpha + \\sum x_t - 1} (1 - \\theta)^{\\beta + N - \\sum x_t - 1}\n\\\\\n&\\qquad \\qquad \\downarrow\n\\\\\n\\theta \\mid X &\\sim \\text{Beta}\\Big(\\alpha + \\sum_{t=1}^{n} x_t, \\beta + N - \\sum_{t=1}^{n} x_t \\Big).\n\\end{aligned}\n\\]"
+  },
+  {
+    "objectID": "bayesian.html#사전분포",
+    "href": "bayesian.html#사전분포",
+    "title": "베이지안 통계",
+    "section": "3.1 사전분포",
+    "text": "3.1 사전분포\n양극단이 적고 중앙이 두툼한 형태 정규분포 비슷한 사전분포를 가정한다.\n\n\n코드 보기\nprior_param <- tribble(~\"alpha\", ~\"beta\",\n                       2, 2)\n\nprior_tbl <- prior_param %>% \n  mutate(x = map2(0, 1, seq, length = 100)) %>% \n  unnest(x) %>% \n  mutate(fx = pmap_dbl(list(x, alpha, beta), dbeta)) %>%   \n  mutate(분포 = glue::glue(\"Beta(\\u03b1:{alpha}, \\u03b2:{beta})\"))\n\nprior_beta_g <- prior_tbl %>% \n  ggplot(aes(x = x, y = fx, color = 분포)) +\n    geom_line() +\n    theme_light() +\n    theme(legend.position = \"none\") +\n    labs(title = \"사전분포 - 형태모수(\\u03b1=2, \\u03b2=2)를 갖는 베타분포\",\n         x     = \"x\",\n         y     = \"f(x)\") \n\nprior_beta_g"
+  },
+  {
+    "objectID": "bayesian.html#실제구매-데이터",
+    "href": "bayesian.html#실제구매-데이터",
+    "title": "베이지안 통계",
+    "section": "3.2 실제구매 데이터",
+    "text": "3.2 실제구매 데이터\n고객 \\(N\\) 명중 \\(n\\) 명이 구매를 했다고 가정하자. 예를 들어, 광고 캠페인에 \\(N=10\\) 명에게 문자를 돌려 \\(n=6\\)이 구매를 한 경우 가능도를 아래와 같이 베타분포로 표현할 수 있다.\n\n\n코드 보기\nbinomial_param <- tribble(~\"N\", ~\"n\",\n                            10, 6)\n\nlikelihood_tbl <- binomial_param %>% \n  mutate(N_n = N - n) %>% \n  mutate(x = map2(0, 1, seq, length = 20)) %>% \n  unnest(x) %>% \n  mutate(fx = pmap_dbl(list(x, n, N_n), dbeta)) %>%   \n  mutate(분포 = glue::glue(\"Beta(\\u03b1:{n}, \\u03b2:{N_n})\"))\n\n  \nlikelihood_g <- likelihood_tbl %>% \n  ggplot(aes(x = x, y = fx, fill = 분포)) +\n    geom_line() +\n    theme_light() +\n    theme(legend.position = \"none\") +\n    labs(title = \"가능성 함수 - 형태모수(\\u03b1=6, \\u03b2=4)를 갖는 베타분포\",\n         x     = \"x\",\n         y     = \"f(x)\") \n\nlikelihood_g"
+  },
+  {
+    "objectID": "bayesian.html#사후확률-1",
+    "href": "bayesian.html#사후확률-1",
+    "title": "베이지안 통계",
+    "section": "3.3 사후확률",
+    "text": "3.3 사후확률\n베타분포를 사전확률로 갖고 베르누이/이항분포를 결합한 사후확률은 갱신된 형태모수 \\(\\alpha, \\beta\\)를 갖는 베타분포입니다. 따라서,\n\\[사전분포 \\sim Beta(2,2) \\qquad \\rightarrow \\qquad 사후분포 \\sim Beta(2+6, 2+10-6)\\]\n\n\n코드 보기\npost_param <- tribble(~\"alpha\", ~\"beta\",\n                       8, 6)\npost_tbl <- post_param %>% \n  mutate(x = map2(0, 1, seq, length = 100)) %>% \n  unnest(x) %>% \n  mutate(fx = pmap_dbl(list(x, alpha, beta), dbeta)) %>%   \n  mutate(분포 = glue::glue(\"Beta(\\u03b1:{alpha}, \\u03b2:{beta})\"))\n\npost_beta_g <- post_tbl %>% \n  ggplot(aes(x = x, y = fx, color = 분포)) +\n    geom_line() +\n    theme_light() +\n    theme(legend.position = \"none\") +\n    labs(title = \"사후분포 - 형태모수(\\u03b1=8, \\u03b2=6)를 갖는 베타분포\",\n         x     = \"x\",\n         y     = \"f(x)\") \n\npost_beta_g"
+  },
+  {
+    "objectID": "bayesian.html#결합",
+    "href": "bayesian.html#결합",
+    "title": "베이지안 통계",
+    "section": "3.4 결합",
+    "text": "3.4 결합\n앞서 각기 달리 시각화한 것을 사전, 가능도, 사후 분포를 함께 살펴보자. 0.5 전후 구매확률이 있다고 사전분포를 가정한 후 실제 데이터를 통해 수집된 내용은 10명 중 6명이 구매를 한 것이 확인되었다. 이를 바탕으로 사전분포와 가능도를 결합하여 사후 구매확률을 자동으로 갱신할 수 있다.\n\n나눠보기합쳐보기\n\n\n\n\n코드 보기\nlibrary(patchwork)\n\nprior_beta_g / likelihood_g / post_beta_g\n\n\n\n\n\n\n\n\n\n\n\n\n\n코드 보기\nprior_viz <- prior_tbl %>% \n  select(구분 = 분포, x = x, fx = fx)\n\nlikelihood_viz <- likelihood_tbl %>% \n  select(구분 = 분포, x = x, fx = fx)\n\npost_viz <- post_tbl %>% \n  select(구분 = 분포, x = x, fx = fx)\n\nbayes_tbl <- bind_rows(prior_viz, likelihood_viz) %>% \n  bind_rows(post_viz)\n\nbayes_tbl %>% \n  ggplot(aes(x = x, y = fx, color = 구분)) +\n    geom_line() +\n    theme_light() +\n    theme(legend.position = \"top\") +\n    labs(title = \"사후분포 - 형태모수(\\u03b1=8, \\u03b2=6)를 갖는 베타분포\",\n         x     = \"x\",\n         y     = \"f(x)\",\n         color = \"사전/가능도/사후\")"
+  },
+  {
+    "objectID": "case-study.html",
+    "href": "case-study.html",
+    "title": "사례",
+    "section": "",
+    "text": "Dynamic Pricing 사례…"
+  },
+  {
+    "objectID": "cvp.html",
+    "href": "cvp.html",
+    "title": "Cost-Volume-Profit(CVP)",
+    "section": "",
+    "text": "원가-조업도-이익(Cost-Volume-Profit, CVP) 분석에서 이익(Profit)이 조업도(Volume), 원가(Cost)의 변화에 어떻게 변화하는지 분석하는 경영학 기법으로 이를 통해서 목표 이익, 목표판매량, 목표매출액 등을 산출해볼 수 있다. 특히, 손익분기점에 도달하려면 몇개의 상품을 팔아야하는지 분석할 수도 있다.\n원가는 고정비와 변동비로 구분하고 이익은 매출에서 비용을 제하면 구할 수고 조업도(Volume)는 기업의 활동정도로 제품 생산량, 노동시간, 기계작업시간 등으로 측정된다.\n\n구성요소\n\n가격\n판매량\n단가(Unit Variable Cost)\n총고정비(Total Fixed Cost)\nProduct(Sales) Mix\n\n목표이익 = (가격 - 비용) X 목표판매량 - 총고정비용"
+  },
+  {
+    "objectID": "cvp.html#총비용-방법",
+    "href": "cvp.html#총비용-방법",
+    "title": "Cost-Volume-Profit(CVP)",
+    "section": "2.1 총비용 방법",
+    "text": "2.1 총비용 방법\n\n손익분기점: 총비용 = 총매출\n\n총비용 = 고정비용 + 변동비용\n총매출 = 판매량 X 단가\n\n\n\n\n코드 보기\nlibrary(tidyverse)\n#> ── Attaching packages ─────────────────────────────────────── tidyverse 1.3.1 ──\n#> ✔ ggplot2 3.3.6      ✔ purrr   0.3.4 \n#> ✔ tibble  3.1.8      ✔ dplyr   1.0.10\n#> ✔ tidyr   1.2.1      ✔ stringr 1.4.1 \n#> ✔ readr   2.1.2      ✔ forcats 0.5.2\n#> Warning: 패키지 'tibble'는 R 버전 4.2.1에서 작성되었습니다\n#> Warning: 패키지 'tidyr'는 R 버전 4.2.1에서 작성되었습니다\n#> Warning: 패키지 'dplyr'는 R 버전 4.2.1에서 작성되었습니다\n#> Warning: 패키지 'stringr'는 R 버전 4.2.1에서 작성되었습니다\n#> Warning: 패키지 'forcats'는 R 버전 4.2.1에서 작성되었습니다\n#> ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──\n#> ✖ dplyr::filter() masks stats::filter()\n#> ✖ dplyr::lag()    masks stats::lag()\nlibrary(testthat)\n#> \n#> 다음의 패키지를 부착합니다: 'testthat'\n#> The following object is masked from 'package:dplyr':\n#> \n#>     matches\n#> The following object is masked from 'package:purrr':\n#> \n#>     is_null\n#> The following objects are masked from 'package:readr':\n#> \n#>     edition_get, local_edition\n#> The following object is masked from 'package:tidyr':\n#> \n#>     matches\n\nfixed_costs    = 520000\nvariable_costs = 1105000\ntotal_costs    = 1625000\n\ntest_that(\"총원가 = 고정비 + 변동비\", {\n  expect_equal(fixed_costs + variable_costs, total_costs)\n})\n#> Test passed 🥳\n\ntotal_costs <- fixed_costs + variable_costs\ntotal_revenue = 1625000\n\ntest_that(\"총매출 - 총원가 = 0\", {\n  expect_equal(total_revenue - total_costs, 0)\n})\n#> Test passed 🥳"
+  },
+  {
+    "objectID": "cvp.html#공헌이익-방법",
+    "href": "cvp.html#공헌이익-방법",
+    "title": "Cost-Volume-Profit(CVP)",
+    "section": "2.2 공헌이익 방법",
+    "text": "2.2 공헌이익 방법\n공헌이익(Contribution Margin)은 제품가에서 변동비를 뺀 값으로 다음과 같이 표현한다.\n\\[\\text{(단위) 공헌이익 =  단위 가격 - 단위 변동비}\\]\n\n고정비: 520,000\n단위 가격: 25\n단위 변동비: 17\n(단위) 공헌이익: (25-17) = 8\n\n문제는 판매량이 얼마가 되어야 최소 손실을 보지 않게 될까? 수식으로 표현하면 다음과 같이 구할 수 있다.\n\\(520,000 - (25-17) * volume = 0\\)\n방정식을 풀면 다음과 같이 구할 수 있다.\n\\(volume = \\frac{520,000}{8} = 65,000\\)\n\n\n코드 보기\nsales_fn <- function(volume) (25-17) * volume - 520000\n\nbe_volume <- uniroot(sales_fn, lower = 0, upper = 100000)$root\nbe_volume\n#> [1] 65000\n\n\n시각적으로 나타내면 다음과 같다.\n\n\n코드 보기\ntibble(volume = seq(0, 100000, 100)) %>% \n  mutate(profit = map_dbl(volume, sales_fn)) %>% \n  ggplot(aes(x = volume, y = profit)) +\n    geom_line() +\n    scale_x_continuous(labels = scales::comma) +\n    scale_y_continuous(labels = scales::comma) +\n    theme_bw(base_family = \"NanumGothic\") +\n  labs(title = \"손익분기점 판매량 - 공헌이익 방법\",\n       x = \"판매량\",\n       y = \"이익\") +\n    geom_hline(yintercept = 0, color = \"gray50\") +\n    geom_point(aes(x= be_volume, y = 0), size = 3, color = \"blue\") +\n    annotate(\"text\", x = 80000, y = -50000, \n             label = glue::glue(\"손익분기점: {scales::comma(be_volume)}\"), \n             size = 5, color = \"blue\")  \n#> Warning in grid.Call(C_stringMetric, as.graphicsAnnot(x$label)): 윈도우즈 폰트데\n#> 이터베이스에서 찾을 수 없는 폰트페밀리입니다\n\n#> Warning in grid.Call(C_stringMetric, as.graphicsAnnot(x$label)): 윈도우즈 폰트데\n#> 이터베이스에서 찾을 수 없는 폰트페밀리입니다\n\n#> Warning in grid.Call(C_stringMetric, as.graphicsAnnot(x$label)): 윈도우즈 폰트데\n#> 이터베이스에서 찾을 수 없는 폰트페밀리입니다\n#> Warning in grid.Call(C_textBounds, as.graphicsAnnot(x$label), x$x, x$y, : 윈도우\n#> 즈 폰트데이터베이스에서 찾을 수 없는 폰트페밀리입니다\n\n#> Warning in grid.Call(C_textBounds, as.graphicsAnnot(x$label), x$x, x$y, : 윈도우\n#> 즈 폰트데이터베이스에서 찾을 수 없는 폰트페밀리입니다\n\n#> Warning in grid.Call(C_textBounds, as.graphicsAnnot(x$label), x$x, x$y, : 윈도우\n#> 즈 폰트데이터베이스에서 찾을 수 없는 폰트페밀리입니다\n\n#> Warning in grid.Call(C_textBounds, as.graphicsAnnot(x$label), x$x, x$y, : 윈도우\n#> 즈 폰트데이터베이스에서 찾을 수 없는 폰트페밀리입니다\n\n#> Warning in grid.Call(C_textBounds, as.graphicsAnnot(x$label), x$x, x$y, : 윈도우\n#> 즈 폰트데이터베이스에서 찾을 수 없는 폰트페밀리입니다\n\n#> Warning in grid.Call(C_textBounds, as.graphicsAnnot(x$label), x$x, x$y, : 윈도우\n#> 즈 폰트데이터베이스에서 찾을 수 없는 폰트페밀리입니다\n\n#> Warning in grid.Call(C_textBounds, as.graphicsAnnot(x$label), x$x, x$y, : 윈도우\n#> 즈 폰트데이터베이스에서 찾을 수 없는 폰트페밀리입니다\n\n#> Warning in grid.Call(C_textBounds, as.graphicsAnnot(x$label), x$x, x$y, : 윈도우\n#> 즈 폰트데이터베이스에서 찾을 수 없는 폰트페밀리입니다\n\n#> Warning in grid.Call(C_textBounds, as.graphicsAnnot(x$label), x$x, x$y, : 윈도우\n#> 즈 폰트데이터베이스에서 찾을 수 없는 폰트페밀리입니다\n\n#> Warning in grid.Call(C_textBounds, as.graphicsAnnot(x$label), x$x, x$y, : 윈도우\n#> 즈 폰트데이터베이스에서 찾을 수 없는 폰트페밀리입니다\n#> Warning in grid.Call.graphics(C_text, as.graphicsAnnot(x$label), x$x, x$y, : 윈\n#> 도우즈 폰트데이터베이스에서 찾을 수 없는 폰트페밀리입니다\n#> Warning in grid.Call(C_textBounds, as.graphicsAnnot(x$label), x$x, x$y, : 윈도우\n#> 즈 폰트데이터베이스에서 찾을 수 없는 폰트페밀리입니다"
+  },
+  {
+    "objectID": "cvp.html#목표-이익-방법",
+    "href": "cvp.html#목표-이익-방법",
+    "title": "Cost-Volume-Profit(CVP)",
+    "section": "2.3 목표 이익 방법",
+    "text": "2.3 목표 이익 방법\n손익분기점에 맞추는 것이 목표가 아니고 사업에서는 이익을 남기는 것이 목표라서 다음과 같이 목표 이익을 더하여 목표이익을 달성하는데 필요한 판매수량을 계산한다.\n예를 들어 고정비(즉, 투자)의 10%를 목표로 삼아 목표달성을 위해 필요한 판매량을 계산해보자.\n\\[\\text{목표이익 달성을 위한 판매수량} = \\frac{고정비용+목표이익}{(단위) 공헌이익}\\]\n\n고정비: 520,000\n단위 가격: 25\n단위 변동비: 17\n(단위) 공헌이익: (25-17) = 8\n목표이익: 52,000\n\n수식으로 정리하여 방정식을 풀면 판매량을 다음과 같이 계산할 수 있다.\n\\[\\frac{520,000 + 52,000}{8} = 71,500\\]\n이것을 확대하면 다른 사항도 고려하여 목표를 달성하는데 필요한 판매목표수량을 계산할 수 있다.\n\n고정비: 520,000\n단위 가격: 25\n단위 변동비: 17\n(단위) 공헌이익: (25-17) = 8\n이익관련 전체 목표\n\n목표이익: 52,000\n우선주 배당: 13,000\n일반주 배당: 20,000\n\n\n\\[\\frac{520,000 + 52,000 + 13,000 + 20,000}{8} = 75,625\\]\n프로그래밍을 통해 다음과 같이 계산할 수 있다.\n\n\n코드 보기\nfixed_costs = 520000\ndesired_profit = 52000\ndividends_prefer = 13000\ndividends_common = 20000\n\ncontribution_margin = (25-17)\n\ncm_be_volume <- (fixed_costs + desired_profit + dividends_prefer + dividends_common) / contribution_margin\n\ntest_that(\"목표이익 검정\", {\n  expect_equal(cm_be_volume, 75625)\n})\n#> Test passed 🥳\n\n\n시각화를 통해서 상기 사항을 다음과 같이 확인할 수 있다.\n\n\n코드 보기\n# 고정비, 목표이익, 배당 함수 --------\nfixed_cost_fn <- function(volume) (25-17) * volume - 520000\ndesired_profit_fn <- function(volume) (25-17) * volume - 520000 - 52000\ndividend_fn <- function(volume) (25-17) * volume - 520000 - 52000 - 13000 - 20000\n\n# 시각화를 위한 데이터프레임\ngoals_tbl <- tibble(volume = seq(0, 100000, 100)) %>% \n  mutate(fixed_cost    = map_dbl(volume, fixed_cost_fn),\n         desired_profit = map_dbl(volume, desired_profit_fn),\n         dividend       = map_dbl(volume, dividend_fn)) %>% \n  pivot_longer(fixed_cost:dividend) %>% \n  mutate(name = factor(name, levels = c(\"fixed_cost\",\n                                        \"desired_profit\",\n                                        \"dividend\"),\n                       labels = c(\"고정비\", \"목표이익\", \"배당\")))\n\n\nfixed_cost_bep <- uniroot(fixed_cost_fn, lower = 0, upper = 100000)$root\ndesired_profit_bep <- uniroot(desired_profit_fn, lower = 0, upper = 100000)$root\ndividend_bep <- uniroot(dividend_fn, lower = 0, upper = 100000)$root\n\n# 시각화\ngoals_tbl %>% \n  ggplot(aes(x = volume, y = value, color = name)) +\n    geom_line() +\n    scale_x_continuous(labels = scales::comma) +\n    scale_y_continuous(labels = scales::comma) +\n    theme_bw(base_family = \"NanumGothic\") +\n  labs(title = \"손익분기점 판매량 - 목표이익달성\",\n       x = \"판매량\",\n       y = \"이익\",\n       color = \"구분\") +\n    geom_hline(yintercept = 0, color = \"gray50\") +\n    geom_point(aes(x= fixed_cost_bep, y = 0), size = 3, color = \"blue\") +\n    geom_point(aes(x= desired_profit_bep, y = 0), size = 3, color = \"green\") +\n    geom_point(aes(x= dividend_bep, y = 0), size = 3, color = \"red\") +\n    annotate(\"text\", x = 55000, y = 50000, \n             label = glue::glue(\"{scales::comma(fixed_cost_bep)}\"), \n             size = 4.5, color = \"blue\") +\n    annotate(\"text\", x = 85000, y = 30000, \n             label = glue::glue(\"{scales::comma(desired_profit_bep)}\"), \n             size = 4.5, color = \"green\") +\n    annotate(\"text\", x = 85000, y = -50000, \n             label = glue::glue(\"{scales::comma(dividend_bep)}\"), \n             size = 4.5, color = \"red\") +\n  scale_color_manual(values = c(\"blue\", \"green\", \"red\")) \n#> Warning in grid.Call(C_textBounds, as.graphicsAnnot(x$label), x$x, x$y, : 윈도우\n#> 즈 폰트데이터베이스에서 찾을 수 없는 폰트페밀리입니다\n\n#> Warning in grid.Call(C_textBounds, as.graphicsAnnot(x$label), x$x, x$y, : 윈도우\n#> 즈 폰트데이터베이스에서 찾을 수 없는 폰트페밀리입니다\n\n#> Warning in grid.Call(C_textBounds, as.graphicsAnnot(x$label), x$x, x$y, : 윈도우\n#> 즈 폰트데이터베이스에서 찾을 수 없는 폰트페밀리입니다\n\n#> Warning in grid.Call(C_textBounds, as.graphicsAnnot(x$label), x$x, x$y, : 윈도우\n#> 즈 폰트데이터베이스에서 찾을 수 없는 폰트페밀리입니다\n\n#> Warning in grid.Call(C_textBounds, as.graphicsAnnot(x$label), x$x, x$y, : 윈도우\n#> 즈 폰트데이터베이스에서 찾을 수 없는 폰트페밀리입니다\n\n#> Warning in grid.Call(C_textBounds, as.graphicsAnnot(x$label), x$x, x$y, : 윈도우\n#> 즈 폰트데이터베이스에서 찾을 수 없는 폰트페밀리입니다\n\n#> Warning in grid.Call(C_textBounds, as.graphicsAnnot(x$label), x$x, x$y, : 윈도우\n#> 즈 폰트데이터베이스에서 찾을 수 없는 폰트페밀리입니다\n\n#> Warning in grid.Call(C_textBounds, as.graphicsAnnot(x$label), x$x, x$y, : 윈도우\n#> 즈 폰트데이터베이스에서 찾을 수 없는 폰트페밀리입니다\n\n#> Warning in grid.Call(C_textBounds, as.graphicsAnnot(x$label), x$x, x$y, : 윈도우\n#> 즈 폰트데이터베이스에서 찾을 수 없는 폰트페밀리입니다\n\n#> Warning in grid.Call(C_textBounds, as.graphicsAnnot(x$label), x$x, x$y, : 윈도우\n#> 즈 폰트데이터베이스에서 찾을 수 없는 폰트페밀리입니다\n\n#> Warning in grid.Call(C_textBounds, as.graphicsAnnot(x$label), x$x, x$y, : 윈도우\n#> 즈 폰트데이터베이스에서 찾을 수 없는 폰트페밀리입니다\n\n#> Warning in grid.Call(C_textBounds, as.graphicsAnnot(x$label), x$x, x$y, : 윈도우\n#> 즈 폰트데이터베이스에서 찾을 수 없는 폰트페밀리입니다\n#> Warning in grid.Call.graphics(C_text, as.graphicsAnnot(x$label), x$x, x$y, : 윈\n#> 도우즈 폰트데이터베이스에서 찾을 수 없는 폰트페밀리입니다\n#> Warning in grid.Call(C_textBounds, as.graphicsAnnot(x$label), x$x, x$y, : 윈도우\n#> 즈 폰트데이터베이스에서 찾을 수 없는 폰트페밀리입니다\n\n#> Warning in grid.Call(C_textBounds, as.graphicsAnnot(x$label), x$x, x$y, : 윈도우\n#> 즈 폰트데이터베이스에서 찾을 수 없는 폰트페밀리입니다\n\n#> Warning in grid.Call(C_textBounds, as.graphicsAnnot(x$label), x$x, x$y, : 윈도우\n#> 즈 폰트데이터베이스에서 찾을 수 없는 폰트페밀리입니다"
+  },
+  {
+    "objectID": "demand_curve.html",
+    "href": "demand_curve.html",
+    "title": "수요곡선",
+    "section": "",
+    "text": "가격 결정에서 독과점 구조에서 가격을 직접 결정할 수 있는 시장이 아닌 경우 고객 수요를 파악하는 것은 무척 중요하다. 여기서, 독점기업은 대체 불가능한 제품 혹은 서비스를 유일하게 공급하는 기업을 의미한다. 일반적으로 가격 변화에 모든 수요물량을 정확히 알 수가 없기 때문에 다음 데이터를 가지고 수요 곡선을 가정해보자.\n\n\n코드 보기\nlibrary(tidyverse)\nlibrary(ggrepel)\n\nsegment_tbl <- tibble( x = c(50, \n                             50+150, \n                             50+150+350, \n                             50+150+350+250,\n                             50+150+350+250+200),\n                       y = c(20, 15, 10, 8, 6))\n\n\n\nsegment_tbl %>% \n  ggplot(aes(x = x, y = y)) +\n    geom_point() +\n    labs(x = \"수요물량\",\n         y = \"가격\",\n         title = \"가격과 수요물량 관계\") +\n     geom_hline(yintercept = 5, linetype = 2, color = \"gray70\") +\n     expand_limits(x =0, y =0) +\n     theme_bw(base_family = \"NanumGothic\") +\n     annotate(\"text\", x = 1, y = 6, label = \"변동비\", size = 3)\n\n\n\n\n\n\n\n\n\n가격 변화에 따라 관측된 5개 관측점을 선형 모형을 가정하여 난수를 발생하여 다양한 가격에 따른 물량을 시각화해보자. 실무에서는 자사의 가격변화를 달리하여 수많은 가격별 수요물량을 산출하는 것은 불가능하지만 경우에 따라서 경쟁제품이 많고 업력이 오래된 경우 가격별 물량 데이터를 얻어 회귀식으로부터 수요곡선을 도출하는 방법도 존재한다.\n\n\n코드 보기\n## Price Response 곡선 ------------\nmodel_tbl <- segment_tbl %>% \n  rename(물량 = x, 가격 = y)\n\nprice_response_lm <- lm(물량 ~ 가격, data = model_tbl)\n\ngenerate_demands <- function(price) {\n  \n  price_response_coef <- coef(price_response_lm)\n  error <- rnorm(length(price), mean = 0, sd = sd(model_tbl$물량))\n  \n  quantity <- price_response_coef[1] + price_response_coef[2] * price + error\n  \n  return(quantity)\n}\n\n## 시각화 --------\nprice_seq <- seq(0, 30, 1)\nquantity_seq <- generate_demands(price_seq)\n\noptimal_tbl <- tibble(가격 = price_seq, 수요물량 = quantity_seq)\n\noptimal_tbl %>% \n  ggplot(aes( x= 가격, y = 수요물량)) +\n    geom_point() +\n    geom_smooth(method='lm') +\n    geom_hline(yintercept = 5, linetype = 2, color = \"gray70\") +\n    expand_limits(x =0, y =0) +\n    theme_bw(base_family = \"NanumGothic\") +\n    annotate(\"text\", x = 1, y = 6, label = \"변동비\", size = 3)"
+  },
+  {
+    "objectID": "demand_curve.html#상수-수요모형",
+    "href": "demand_curve.html#상수-수요모형",
+    "title": "수요곡선",
+    "section": "2.1 상수 수요모형",
+    "text": "2.1 상수 수요모형\n예를 들어 가격을 수요물량에 관계없이 일정가격 10을 가정할 경우 다음과 같다. 하지만 물량에는 한계가 있어 특정 물량((1,500)을 넘어가게 되면 공급을 더이상 할 수 없으니 가격은 0이 된다.\n\n\n코드 보기\n## 시각화 ---------------\nstep_tbl <- tribble(~\"x\", ~\"y\",\n        0, 10,\n        1250, 10,\n        1250,0,\n        2000,0)\n\nsegment_tbl %>% \n  ggplot(aes(x = x, y = y)) +\n    geom_point() +\n    labs(x = \"수요물량\",\n         y = \"가격\",\n         title = \"가격과 수요물량 관계\") +\n     geom_hline(yintercept = 5, linetype = 2, color = \"gray70\") +\n     expand_limits(x =0, y =0) +\n     theme_bw(base_family = \"NanumGothic\") +\n     annotate(\"text\", x = 30, y = 6, label = \"변동비($5)\", size = 3)  +\n     scale_x_continuous(labels = scales::comma)  +\n     expand_limits(x = c(0, 2000)) +\n     geom_path(data = step_tbl, aes(x = x, y = y), color = \"blue\")"
+  },
+  {
+    "objectID": "demand_curve.html#선형-회귀-모형",
+    "href": "demand_curve.html#선형-회귀-모형",
+    "title": "수요곡선",
+    "section": "2.2 선형 회귀 모형",
+    "text": "2.2 선형 회귀 모형\n수요함수(\\(d(P)\\), price-response function)를 선형으로 가정하고 Price-Response 함수를 추정해보자. 가격과 수요함수를 선형회귀식을 통해 추정할 경우 모수가 3개라서 관측점이 2개 이상이면 선형회귀방정식을 도출해낼 수 있다. 선형회귀식이 가격별 수요물량을 제대로 모형으로 일반화할 수 있는지 시각화를 통해 검증하는 방식이 혹시라도 생길 수 있는 전산 오류 혹은 이상점에 따른 불확실성 제거를 위해서도 꼭 필요한 과정이다.\n\n\n코드 보기\n## 비선형 수요모형 ---------\n\nlm_mod <- lm(y ~ x, data = segment_tbl)\n\nlm_coef <- broom::tidy(lm_mod) %>% \n  pull(estimate)\n\nlm_fn <- function(x) lm_coef[1] + lm_coef[2] * x\n\n## 시각화 ---------------\nsegment_tbl %>% \n  ggplot(aes(x = x, y = y)) +\n    geom_point() +\n    geom_function(fun = lm_fn, color = \"blue\") +\n    labs(x = \"수요물량\",\n         y = \"가격\",\n         title = \"가격과 수요물량 관계\") +\n     geom_hline(yintercept = 5, linetype = 2, color = \"gray70\") +\n     expand_limits(x =0, y =0) +\n     theme_bw(base_family = \"NanumGothic\") +\n     annotate(\"text\", x = 20, y = 6, label = \"변동비($5)\", size = 3)  +\n     scale_x_continuous(labels = scales::comma)"
+  },
+  {
+    "objectID": "demand_curve.html#비선형-회귀모형",
+    "href": "demand_curve.html#비선형-회귀모형",
+    "title": "수요곡선",
+    "section": "2.3 비선형 회귀모형",
+    "text": "2.3 비선형 회귀모형\n수요함수(\\(d(P)\\), price-response function)를 선형회귀식을 가정한 경우 변동율이 일정하다고 가정했지만 경우에 따라서 가격에 민감하게 반응하는 탄력성을 갖는 경우 특정 가격대에서는 급격한 수요변화를 일정 가격대를 넘게 되면 완만한 수요변화를 가정하는 것도 합리적이다. 이와 같은 가격대별로 비선형 가격탄력성을 갖는 관계를 비선형 회귀곡선으로 적합시켜 후속 업무에 활용할 수 있다.\n\\[d(P) = e^{\\alpha + \\beta \\times log(P)}\\]\n\n\n코드 보기\n## 비선형 수요모형 ---------\nget_coef <- function() {\n  x <- segment_tbl$x\n  y <- segment_tbl$y\n  \n  demand_fit <- nls(y ~ exp(a + b * log(x)), start=list(a=0, b=0))\n  \n  nls_coef <- broom::tidy(demand_fit) %>% \n    pull(estimate)\n  return(list(a = nls_coef[1],\n              b = nls_coef[2]))\n}\n\nnls_coef <- get_coef()\n\nnls_fn <- function(x) exp(nls_coef$a + nls_coef$b * log(x))\n\n## 시각화 ---------------\nsegment_tbl %>% \n  ggplot(aes(x = x, y = y)) +\n    geom_point() +\n    geom_function(fun = nls_fn, color = \"blue\") +\n    labs(x = \"수요물량\",\n         y = \"가격\",\n         title = \"가격과 수요물량 관계\") +\n     geom_hline(yintercept = 5, linetype = 2, color = \"gray70\") +\n     expand_limits(x =0, y =0) +\n     theme_bw(base_family = \"NanumGothic\") +\n     annotate(\"text\", x = 20, y = 6, label = \"변동비($5)\", size = 3)  +\n     scale_x_continuous(labels = scales::comma)"
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "Dynamic Pricing",
+    "section": "",
+    "text": "1 Part 0.\nDynamic Pricing 출현배경과 사례를 살펴봅니다.\n\n\n2 Part I.\n가격결정에 대한 기초 지식을 학습합니다. 통계학의 (비)선형회귀와 기초 미적분 개념을 경영/경제 공헌이익변동을 중심으로 가격최적화를 코드와 시각화를 통해 폭넓게 다룹니다.\n\n가격결정 중요성\n(통계)수요곡선\n가격변동과 최적화\n[외전] CVP 분석\n\n\n\n3 Part II.\n수학과 통계를 도구로 활용하여 가격결정 모형을 제작합니다. 수학통계 모형을 R과 파이썬 코딩을 통해 데이터분석 학습 내용을 심도깊이 이해하고 이를 업무활용할 기본기를 갖추게 됩니다.\n\nA/B 테스팅\n베이지안 통계\n톰슨 샘플링"
+  },
+  {
+    "objectID": "math.html",
+    "href": "math.html",
+    "title": "베이지안 통계",
+    "section": "",
+    "text": "동적가격책정(Dynamic Pricing) 방법론으로 자주 언급되는 톰슨 샘플링(Thompson Sampling)은 베이지안 통계 방법론에 근간을 두고 있다. 기존 사람이 다양한 연구를 바탕으로 가격을 선정하여 캠페인 등을 통해 실행에 옮기거나 A/B 테스팅과 같이 실험을 반복해서 주기적으로 최적 가격을 옮겨가는 방식이 아니라 톰슨 샘플링을 통해 최적의 가격을 실시간으로 책정하며 동적으로 유지하는 체계를 갖추기 위해 가장 기본이 되는 베타분포와 베르누이분포를 먼저 이해해야 한다.\n톰슨 샘플링을 통해 풀려고 하는 문제는 가격정책을 몇가지로 지정한 후 예를 들어 3가지로 정했다고 가정하면 3가지 가격정책을 고객에게 보여주고 실시간으로 구매 혹은 비구매, 클릭 혹은 비클릭, 가입 혹은 비가입과 같은 성공 혹은 실패 결과를 얻고 이를 다시 가격정책에 반영하여 최적 가격을 찾아가는 방식이다.\n이와 같은 동적 가격결정 방식을 구현하기 위해 수학적으로 가장 단순한 성공과 실패를 모형화하는데 베르누이 분포를 가정하고 지속적인 사후 확률분포 갱신을 위해 베르누이 분포의 켤레 사전분포로 베타분포를 선택하여 사후확률도 베타분포가 나오도록 하여 설계한다."
+  },
+  {
+    "objectID": "math.html#감마와-베타-함수",
+    "href": "math.html#감마와-베타-함수",
+    "title": "베이지안 통계",
+    "section": "1.1 감마와 베타 함수",
+    "text": "1.1 감마와 베타 함수\n베타함수는 다음과 같은 \\(\\Gamma\\) 함수로 표현할 수 있다. \\(\\Gamma\\) 함수는 자연수의 계승 또는 팩토리얼(factorial)을 의미하며 수식으로 표현하면 다음과 같다.\n\\[\\Gamma(n) = (n-1)!\\]\n베타함수는 이항분포에 나오는 이항계수를 실수범위로 확장하여 일반화하는 형태로 알려져 있다.\n\\[Beta(\\alpha, \\beta)=\\frac{\\Gamma(\\alpha)\\,\\Gamma(\\beta)}{\\Gamma(\\alpha+\\beta)}\\]"
+  },
+  {
+    "objectID": "math.html#베타-분포-1",
+    "href": "math.html#베타-분포-1",
+    "title": "베이지안 통계",
+    "section": "1.2 베타 분포",
+    "text": "1.2 베타 분포\n베타분포는 베르누이, 이항, 음이항, 기하 분포의 켤레 사전분포(Conjugate Prior)이면서 0과 1사이 비율과 퍼센트지 무작위 사건을 모형화하는데 유용하다. 예를 들어, 구매/비구매, 전환율 등이 0과 1사이 비율을 갖는 비결정사건으로 대입해볼 수 있다.\n사후 확률(Posterior Probability)이 사전 확률(Prior Probability) 분포와 같은 분포 계열에 속하는 경우 그 사전확률분포를 켤레 사전분포(Conjugate Prior)라고 하고 이 경우 사후확률을 계산하기 쉬운 장점이 크다.\n\\[Beta(\\alpha,\\beta):\\,\\, prob(x|\\alpha,\\beta)=\\frac{\\Gamma(\\alpha+\\beta)}{{\\Gamma(\\alpha)\\,\\Gamma(\\beta)}}x^{\\alpha-1}(1-x)^{\\beta-1}\\\\=\\frac{x^{\\alpha-1}(1-x)^{\\beta-1}}{B(\\alpha,\\beta)}\\]\n베타분포의 평균과 분산은 \\(\\alpha\\)와 \\(\\beta\\) 형태 모수를 사용하여 계산할 수 있다.\n\\[E(x)=\\mu = \\frac{\\alpha}{\\alpha + \\beta}\\]\n\\[V(x)=\\frac{\\alpha\\beta}{(\\alpha+\\beta)^{2}(\\alpha+\\beta+1)}\\]"
+  },
+  {
+    "objectID": "math.html#시각화",
+    "href": "math.html#시각화",
+    "title": "베이지안 통계",
+    "section": "1.3 시각화",
+    "text": "1.3 시각화\n예를 들어, \\(\\alpha=2,\\beta=2\\) 형태모수를 갖는 \\(Beta(\\alpha=2,\\beta=2)\\) 함수는 최고차항이 음의부호를 갖는 2차 방정식모양으로 표현할 수 있다. \\(\\alpha,\\beta\\) 형태모수를 달리하여 0 과 1 사이 유연하게 다양한 함수형태를 모형화할 수 있는 것이 보여주고 있다.\n\\[Beta(\\alpha=2,\\beta=2):\\,\\, prob(x|\\alpha,\\beta)=\\frac{\\Gamma(2+2)}{{\\Gamma(2)\\,\\Gamma(2)}}x^{2-1}(1-x)^{2-1}\\\\=\\frac{\\Gamma(4)}{{\\Gamma(2)\\,\\Gamma(2)}}x(1-x)=상수\\times(x-x^2)\\]\n\n\n코드 보기\nlibrary(tidyverse)\n#> ── Attaching packages ─────────────────────────────────────── tidyverse 1.3.1 ──\n#> ✔ ggplot2 3.3.6      ✔ purrr   0.3.4 \n#> ✔ tibble  3.1.8      ✔ dplyr   1.0.10\n#> ✔ tidyr   1.2.1      ✔ stringr 1.4.1 \n#> ✔ readr   2.1.2      ✔ forcats 0.5.2\n#> Warning: 패키지 'tibble'는 R 버전 4.2.1에서 작성되었습니다\n#> Warning: 패키지 'tidyr'는 R 버전 4.2.1에서 작성되었습니다\n#> Warning: 패키지 'dplyr'는 R 버전 4.2.1에서 작성되었습니다\n#> Warning: 패키지 'stringr'는 R 버전 4.2.1에서 작성되었습니다\n#> Warning: 패키지 'forcats'는 R 버전 4.2.1에서 작성되었습니다\n#> ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──\n#> ✖ dplyr::filter() masks stats::filter()\n#> ✖ dplyr::lag()    masks stats::lag()\n\nbeta_param <- tribble(~\"alpha\", ~\"beta\",\n                      0.5, 0.5,\n                      2,  5,\n                      5,  1,\n                      2,  2)\n\nbeta_tbl <- beta_param %>% \n  mutate(x = map2(0, 1, seq, length = 100)) %>% \n  unnest(x) %>% \n  mutate(fx = pmap_dbl(list(x, alpha, beta), dbeta)) %>%   \n  mutate(분포 = glue::glue(\"Beta(\\u03b1:{alpha}, \\u03b2:{beta})\"))\n\nbeta_tbl %>% \n  ggplot(aes(x = x, y = fx, color = 분포)) +\n    geom_line() +\n    facet_wrap(~분포, scales = \"free\") +\n    theme_light() +\n    theme(legend.position = \"none\") +\n    labs(title = \"형태모수((\\u03b1, \\u03b2)를 달리한 베타분포\",\n         x     = \"x\",\n         y     = \"f(x)\")"
+  },
+  {
+    "objectID": "math.html#베타분포-alpha-beta",
+    "href": "math.html#베타분포-alpha-beta",
+    "title": "베이지안 통계",
+    "section": "1.4 베타분포 \\(\\alpha, \\beta\\)",
+    "text": "1.4 베타분포 \\(\\alpha, \\beta\\)\n베타분포 형태모수 \\(\\alpha, \\beta\\)를 달리할 때 분포의 모양을 살펴보자. 추후 베이지안 갱신을 통해 사후 베타분포가 베르누이 분포와 켤레분포로 사용될 경우 \\(\\alpha, \\beta\\) 값을 성공과 실패로 갱신할 땔 분포의 변화를 이해하는데 도움이 될 것이다.\n\n\n코드 보기\nbeta_param <- tribble(~\"alpha\", ~\"beta\",\n                      0, 0,\n                      1, 0,\n                      0, 1,\n                      1, 1,\n                      2, 1,\n                      3, 1,\n                      1, 1,\n                      1, 2,\n                      1, 3,\n                      4, 1,\n                      4, 2,\n                      4, 3,\n                      4, 4)\n\nbeta_tbl <- beta_param %>% \n  mutate(x = map2(0, 1, seq, length = 100)) %>% \n  unnest(x) %>% \n  mutate(fx = pmap_dbl(list(x, alpha, beta), dbeta)) %>%   \n  mutate(분포 = glue::glue(\"Beta(\\u03b1:{alpha}, \\u03b2:{beta})\"))\n\nbeta_tbl %>% \n  ggplot(aes(x = x, y = fx, color = 분포)) +\n  geom_line() +\n  facet_wrap(~분포, scales = \"free\", ncol = 3) +\n  theme_light() +\n  theme(legend.position = \"none\") +\n  labs(title = \"형태모수((\\u03b1, \\u03b2)를 달리한 베타분포\",\n       x     = \"x\",\n       y     = \"f(x)\")"
+  },
+  {
+    "objectID": "math.html#구매-혹은-비구매",
+    "href": "math.html#구매-혹은-비구매",
+    "title": "베이지안 통계",
+    "section": "2.1 구매 혹은 비구매",
+    "text": "2.1 구매 혹은 비구매\n오프라인에서 고객별로 구매 혹은 비구매, 온라인에서는 구독 혹은 비구독, 클릭 혹은 비클릭 등과 같이 고객의 행동을 달리 표현할 수 있다. 이와 같은 구매 혹은 비구매는 성공 혹은 실패를 나타내는 베르누이 시행으로 표현할 수 있다. 여기서 \\(\\theta\\)는 구매확률을 나타낸다.\n\\[X \\sim Bernoulli (\\theta)\\] 확률밀도함수는 다음과 같다. 여기서 \\(\\theta=0,1\\) 성공과 실패값을 갖게 된다.\n\\[p(x|\\theta) = \\theta^x (1-\\theta)^{1-x}\\]"
+  },
+  {
+    "objectID": "math.html#가능도",
+    "href": "math.html#가능도",
+    "title": "베이지안 통계",
+    "section": "2.2 가능도",
+    "text": "2.2 가능도\n사후확률은 사전확률 곱하기 가능도로 정의된다. 따라서, 사전확률은 \\(Beta(\\alpha, \\beta)\\)로 정의하고 베르누이 가능도 함수를 구해 둘을 곱하게 되면 사후확률을 구할 수 있다. 먼저 가능도는 다음과 같이 계산된다.\n\\[\nL(\\theta;x) = p(\\{x_i\\}|\\theta) = \\prod_{i} p(x_i|\\theta)\\\\ = \\prod_{i} \\theta^{x_i}(1-\\theta)^{1-x_i}\\\\=\\theta^{\\sum_{i}{x_i}}(1-\\theta)^{\\sum_i{(1-x_i )}}\\\\=\\theta^{구매횟수}(1-\\theta)^{비구매횟수}\n\\]"
+  },
+  {
+    "objectID": "math.html#사후확률",
+    "href": "math.html#사후확률",
+    "title": "베이지안 통계",
+    "section": "2.3 사후확률",
+    "text": "2.3 사후확률\n베르누이분포의 사전확률 켤레분포가 베타분포로 치환하여 둘을 곱하게 되면 사후확률을 구할 수 있다.\n\\[\np(\\theta|z,N) = \\frac{p(z,N|\\theta)p(\\theta)}{p(z,N)} \\approx\nL(\\theta;x) \\times p(\\theta)\n\\]\n사전분포를 베타분포로 두고 베르누이분포의 가능도 함수를 활용하여 사후확률을 구하면 다음과 같이 수식으로 표현할 수 있다.\n\\[\n\\begin{aligned}\np(\\theta \\mid X)\n&\\propto \\theta^{\\alpha + \\sum x_t - 1} (1 - \\theta)^{\\beta + N - \\sum x_t - 1}\n\\\\\n&\\qquad \\qquad \\downarrow\n\\\\\n\\theta \\mid X &\\sim \\text{Beta}\\Big(\\alpha + \\sum_{t=1}^{n} x_t, \\beta + N - \\sum_{t=1}^{n} x_t \\Big).\n\\end{aligned}\n\\]"
+  },
+  {
+    "objectID": "math.html#사전분포",
+    "href": "math.html#사전분포",
+    "title": "베이지안 통계",
+    "section": "3.1 사전분포",
+    "text": "3.1 사전분포\n양극단이 적고 중앙이 두툼한 형태 정규분포 비슷한 사전분포를 가정한다.\n\n\n코드 보기\nprior_param <- tribble(~\"alpha\", ~\"beta\",\n                       2, 2)\n\nprior_tbl <- prior_param %>% \n  mutate(x = map2(0, 1, seq, length = 100)) %>% \n  unnest(x) %>% \n  mutate(fx = pmap_dbl(list(x, alpha, beta), dbeta)) %>%   \n  mutate(분포 = glue::glue(\"Beta(\\u03b1:{alpha}, \\u03b2:{beta})\"))\n\nprior_beta_g <- prior_tbl %>% \n  ggplot(aes(x = x, y = fx, color = 분포)) +\n    geom_line() +\n    theme_light() +\n    theme(legend.position = \"none\") +\n    labs(title = \"사전분포 - 형태모수(\\u03b1=2, \\u03b2=2)를 갖는 베타분포\",\n         x     = \"x\",\n         y     = \"f(x)\") \n\nprior_beta_g"
+  },
+  {
+    "objectID": "math.html#실제구매-데이터",
+    "href": "math.html#실제구매-데이터",
+    "title": "베이지안 통계",
+    "section": "3.2 실제구매 데이터",
+    "text": "3.2 실제구매 데이터\n고객 \\(N\\) 명중 \\(n\\) 명이 구매를 했다고 가정하자. 예를 들어, 광고 캠페인에 \\(N=10\\) 명에게 문자를 돌려 \\(n=6\\)이 구매를 한 경우 가능도를 아래와 같이 베타분포로 표현할 수 있다.\n\n\n코드 보기\nbinomial_param <- tribble(~\"N\", ~\"n\",\n                            10, 6)\n\nlikelihood_tbl <- binomial_param %>% \n  mutate(N_n = N - n) %>% \n  mutate(x = map2(0, 1, seq, length = 20)) %>% \n  unnest(x) %>% \n  mutate(fx = pmap_dbl(list(x, n, N_n), dbeta)) %>%   \n  mutate(분포 = glue::glue(\"Beta(\\u03b1:{n}, \\u03b2:{N_n})\"))\n\n  \nlikelihood_g <- likelihood_tbl %>% \n  ggplot(aes(x = x, y = fx, fill = 분포)) +\n    geom_line() +\n    theme_light() +\n    theme(legend.position = \"none\") +\n    labs(title = \"가능성 함수 - 형태모수(\\u03b1=6, \\u03b2=4)를 갖는 베타분포\",\n         x     = \"x\",\n         y     = \"f(x)\") \n\nlikelihood_g"
+  },
+  {
+    "objectID": "math.html#사후확률-1",
+    "href": "math.html#사후확률-1",
+    "title": "베이지안 통계",
+    "section": "3.3 사후확률",
+    "text": "3.3 사후확률\n베타분포를 사전확률로 갖고 베르누이/이항분포를 결합한 사후확률은 갱신된 형태모수 \\(\\alpha, \\beta\\)를 갖는 베타분포입니다. 따라서,\n\\[사전분포 \\sim Beta(2,2) \\qquad \\rightarrow \\qquad 사후분포 \\sim Beta(2+6, 2+10-6)\\]\n\n\n코드 보기\npost_param <- tribble(~\"alpha\", ~\"beta\",\n                       8, 6)\npost_tbl <- post_param %>% \n  mutate(x = map2(0, 1, seq, length = 100)) %>% \n  unnest(x) %>% \n  mutate(fx = pmap_dbl(list(x, alpha, beta), dbeta)) %>%   \n  mutate(분포 = glue::glue(\"Beta(\\u03b1:{alpha}, \\u03b2:{beta})\"))\n\npost_beta_g <- post_tbl %>% \n  ggplot(aes(x = x, y = fx, color = 분포)) +\n    geom_line() +\n    theme_light() +\n    theme(legend.position = \"none\") +\n    labs(title = \"사후분포 - 형태모수(\\u03b1=8, \\u03b2=6)를 갖는 베타분포\",\n         x     = \"x\",\n         y     = \"f(x)\") \n\npost_beta_g"
+  },
+  {
+    "objectID": "math.html#결합",
+    "href": "math.html#결합",
+    "title": "베이지안 통계",
+    "section": "3.4 결합",
+    "text": "3.4 결합\n앞서 각기 달리 시각화한 것을 사전, 가능도, 사후 분포를 함께 살펴보자. 0.5 전후 구매확률이 있다고 사전분포를 가정한 후 실제 데이터를 통해 수집된 내용은 10명 중 6명이 구매를 한 것이 확인되었다. 이를 바탕으로 사전분포와 가능도를 결합하여 사후 구매확률을 자동으로 갱신할 수 있다.\n\n나눠보기합쳐보기\n\n\n\n\n코드 보기\nlibrary(patchwork)\n\nprior_beta_g / likelihood_g / post_beta_g\n\n\n\n\n\n\n\n\n\n\n\n\n\n코드 보기\nprior_viz <- prior_tbl %>% \n  select(구분 = 분포, x = x, fx = fx)\n\nlikelihood_viz <- likelihood_tbl %>% \n  select(구분 = 분포, x = x, fx = fx)\n\npost_viz <- post_tbl %>% \n  select(구분 = 분포, x = x, fx = fx)\n\nbayes_tbl <- bind_rows(prior_viz, likelihood_viz) %>% \n  bind_rows(post_viz)\n\nbayes_tbl %>% \n  ggplot(aes(x = x, y = fx, color = 구분)) +\n    geom_line() +\n    theme_light() +\n    theme(legend.position = \"top\") +\n    labs(title = \"사후분포 - 형태모수(\\u03b1=8, \\u03b2=6)를 갖는 베타분포\",\n         x     = \"x\",\n         y     = \"f(x)\",\n         color = \"사전/가능도/사후\")"
+  },
+  {
+    "objectID": "price_opt.html",
+    "href": "price_opt.html",
+    "title": "가격변동과 최적화",
+    "section": "",
+    "text": "일물일가 원칙을 폐기하고 장소와 시간 제품과 서비스에 따라 달리 고객별로 가격책정을 달리한다는 정책을 수립했다면, 가격을 올리거나 내릴 때 어떤 영향을 미치게 되는지 이해하는 것이 선행하여 필요하다. 먼저 가격 변화에 따른 손익분기점의 변화를 살펴보자."
+  },
+  {
+    "objectID": "price_opt.html#가격-인하",
+    "href": "price_opt.html#가격-인하",
+    "title": "가격변동과 최적화",
+    "section": "1.1 가격 인하",
+    "text": "1.1 가격 인하\n가격을 인하하게 되면 판매량이 보통 증가하게 된다. 하지만 가격인하에 따라 공헌이익(\\(P-C\\))은 줄게 되어 이익이 줄게 되고 판매량 증가에 따라 변동비용이 증가하게 되어 역시 이익이 줄게 된다. 따라서 이와 같은 두 이익 감소를 상쇄하고 이익을 남길 수 있는 손익분기점 판매량을 계산해보자.\n\n\n\n\n\n\n단위 가격(\\(P\\)): 10\n가격인하(\\(\\Delta P\\)): - 0.5\n단위 변동비(\\(VC\\)): 5.5\n(단위) 공헌이익(MC, \\(P-VC\\)): (10-5.5) = 4.5\n판매량(\\(Q\\)): 4,000\n\n\\[\\frac{\\Delta Q}{Q} = \\frac{- \\Delta P}{CM + \\Delta P} = \\frac{- \\Delta P}{(P-VC) + \\Delta P}\\]\n\n\n코드 보기\nprice = 10\nvc = 5.5\ndelta_price = - 0.5\nquantity = 4000\n\ndelta_quantity = -delta_price / ((10-5.5) + delta_price)\ndelta_quantity\n\n\n[1] 0.125\n\n\n따라서 12% 만큼 판매량이 늘어야 손익분기점을 넘길 수 있다. 즉,\n\n\n코드 보기\nbep_quantity <- delta_quantity * quantity\n\n\n500 이상 판매량이 증가해야 가격인하에 따른 이익을 볼 수 있다."
+  },
+  {
+    "objectID": "price_opt.html#가격인상",
+    "href": "price_opt.html#가격인상",
+    "title": "가격변동과 최적화",
+    "section": "1.2 가격인상",
+    "text": "1.2 가격인상\n가격을 인상하게 되면 판매량이 보통 감소하게 된다. 하지만 가격인상에 따라 공헌이익(\\(P-C\\))은 늘게되어 판매 단위당 이익은 늘게 되지만, 판매량 감소에 따라 변동비용이 감소하게 되어 역시 이익도 늘게 된다. 따라서 이와 같은 판매량 감소에도 불그하고 이익을 남길 수 있는 최소 손익분기점 판매량을 계산해보자.\n\n\n\n\n\n\n단위 가격(\\(P\\)): 10\n가격인하(\\(\\Delta P\\)): + 1\n단위 변동비(\\(VC\\)): 5.5\n(단위) 공헌이익(MC, \\(P-VC\\)): (11-5.5) = 5.5\n판매량(\\(Q\\)): 4,000\n\n\\[\\frac{\\Delta Q}{Q} = \\frac{- \\Delta P}{CM + \\Delta P} = \\frac{- \\Delta P}{(P-VC) + \\Delta P}\\]\n\n\n코드 보기\nprice = 11\nvc = 5.5\ndelta_price = +1\nquantity = 4000\n\ndelta_quantity = -delta_price / ((11-5.5) + delta_price)\ndelta_quantity\n\n\n[1] -0.1538462\n\n\n따라서 -15% 만큼 판매량이 줄어야 손익분기점을 넘길 수 있다. 즉,\n\n\n코드 보기\nbep_quantity <- delta_quantity * quantity\n\n\n-615 이상 판매량이 감소해야 가격인상에 따른 이익을 볼 수 있다."
+  },
+  {
+    "objectID": "price_opt.html#이익-극대화",
+    "href": "price_opt.html#이익-극대화",
+    "title": "가격변동과 최적화",
+    "section": "3.1 이익 극대화",
+    "text": "3.1 이익 극대화\n가격을 0 에서 1,500 사이 변동을 통해 총 이익이 극대화되는 가격을 시각적으로 확인해보자.\n\n\n코드 보기\nprice <- seq(500, 1500, 1)\nsales <- 209000 - 130 * price\n\nprofit_tbl <- tibble(price = price,\n                     sales = sales) %>% \n  mutate(revenue = price * sales) %>% \n  mutate(profit = sales * (price - 675) )\n\ntotal_contribution <- profit_tbl %>% \n  filter(profit == max(profit)) %>% \n  pull(profit)\n\nprofit_tbl %>% \n  ggplot(aes(x = price, y = profit)) +\n    geom_line() +\n    geom_vline(xintercept = optimal_price) +\n    scale_x_continuous(labels = scales::comma) +\n    scale_y_continuous(labels = scales::comma) +\n    annotate(\"text\", x = 1300, y = 27111000, \n             label = glue::glue(\"P* = {scales::comma(optimal_price)}\\n이익: {scales::comma(total_contribution)}\"), \n             size = 5, color = \"red\")  +\n    geom_point(aes(x= optimal_price, y = total_contribution), size = 3, color = \"blue\") +\n    theme_bw(base_family = \"NanumGothic\") +\n  labs(title = \"총 공헌이익 극대화 최적가격\",\n       x = \"가격\",\n       y = \"수량\")"
+  },
+  {
+    "objectID": "pricing.html",
+    "href": "pricing.html",
+    "title": "가격결정 중요성",
+    "section": "",
+    "text": "가격(Price)은 판매자가 판매하고 있는 제품과 서비스 가치를 반영하기에 적정 가격을 넘어 사업 목표를 달성할 수 있는 최적 가격을 제시하는 것이 매우 중요하다. 특히 가격은 기업의 사업목표를 달성하는 요소 중 가장 강력한 정책수단으로 인식되고 있다.\n가격 결정요인으로 소비자가 지불하고자 하는 가격은 가격의 상한을 설정하고 반대로 원가는 지속적인 생존과 성장을 위해 손해를 최소로 해야 하기 때문에 하한을 설정한다. 큰 틀에서 보면 원가와 고객이 중요하지만 이외에도 경쟁회사 가격, 유통경로와 납품구조, 정부 규제도 영향을 미친다."
+  },
+  {
+    "objectID": "pricing.html#데이터",
+    "href": "pricing.html#데이터",
+    "title": "가격결정 중요성",
+    "section": "3.1 데이터",
+    "text": "3.1 데이터\n데이터셋 출처: The Incremental Contribution from Segmented Price Structure [@nagle2017strategy]\n고객군을 분리하지 않은 단일 가격을 지정할 때, 고객군을 두개로 분리하여 가격을 2개 달리하여 책정할 때, 마지막으로 고객군을 5개로 세분화할 경우 발생되는 총이익을 살펴보자.\n\n고정비: 세가지 가격정책 모두 동일함 가정\n변동비: $5 달러로 가정.\n\n경제학을 비롯한 사회과학에서 가정이 중요하다. 가정을 통해 복잡한 문제를 단순화하고 이를 논리적 추론을 통해 결론에 빠르게 도달할 수 있는 장점이 있지만 가정이 무너지게 되면 이를 통해 도출한 결론도 달라질 수 있다. 고정비가 3가지 경우 모두 동일하다고 가정했지만 커피판매량이 늘어나게 되면 추가로 커피머신(업소용 커피머신이 대당 천만원 소요)이 필요하여 고정비가 늘어나게 된다. 반면에 변동비 $5 달러 가정은 커피 판매량에 따라 더 줄어들 수 있지만 (대량 구매에 따른 높은 할인율 적용) 그 효과가 크지 않다고 보면 결론을 뒤바뀔 정도로 크지 않은 합리적이고 안정적인 가정이라고 볼 수 있다.\n커피가격이 높을 때는 수요물량이 적고 커피가격이 낮은 경우 수요물량이 많은 것이 데이터를 통해 확인된다.\n\n\n코드 보기\nlibrary(tidyverse)\nlibrary(ggforce)\n\nsegment_tbl <- tibble( x = c(50, \n                             50+150, \n                             50+150+350, \n                             50+150+350+250,\n                             50+150+350+250+200),\n                       y = c(20, 15, 10, 8, 6))\n\nsegment_tbl %>% \n  ggplot(aes(x = x, y = y)) +\n    geom_point() +\n    labs(x = \"수요물량\",\n         y = \"가격\",\n         title = \"가격과 수요물량 관계\") +\n     geom_hline(yintercept = 5, linetype = 2, color = \"gray70\") +\n     expand_limits(x =0, y =0) +\n     theme_bw(base_family = \"NanumGothic\") +\n     annotate(\"text\", x = 1, y = 6, label = \"변동비\", size = 3)"
+  },
+  {
+    "objectID": "pricing.html#개-가격",
+    "href": "pricing.html#개-가격",
+    "title": "가격결정 중요성",
+    "section": "3.2 5개 가격",
+    "text": "3.2 5개 가격\n\n\n코드 보기\nfive_price_profit <- segment_tbl %>% \n  mutate(lag_x = lag(x)) %>% \n  mutate(수요물량 = ifelse(is.na(lag_x), x, x - lag_x)) %>% \n  rename(\"가격\" = y) %>% \n  mutate(공헌이익 = 가격 - 5) %>%  # 변동비용 제외\n  mutate(이익 = 수요물량 * 공헌이익) %>% \n  summarise(총이익 = sum(이익)) %>% \n  pull(총이익)\n\nfive_price_profit\n#> [1] 4950\n\n\n서로 다른 가격정책을 5개 달리하게 되면 다음과 같이 4,950 을 얻게되어 가장 많은 이익을 남기게 된다. 이를 시각적으로 표현하면 가격과 판매량(수요물량)을 곱하게 되면 매출이 되고 변동비에 판매량(수요물량)을 곱하게 되면 비용이 되어 매출에서 비용을 빼게 되면 순이익이 된다. 가격을 5가지로 달리했기 때문에 5번 공식을 적용하여 더하게 되면 서로 다른 5개를 적용한 가격정책에 따른 순수 이익을 구할 수 있다.\n\n\n코드 보기\nlibrary(ggrepel)\n\nfive_price_g <- segment_tbl %>% \n  ggplot(aes(x = x, y = y)) +\n    expand_limits(x =0, y =0) +\n    geom_point(color = \"red\") +\n    geom_rect(aes(xmin = 0, xmax = 50, \n                  ymin = 0, ymax = 20), fill = \"gray50\") +\n    geom_rect(aes(xmin = 50, xmax = 50 + 150, \n                  ymin = 0, ymax = 15), fill = \"gray60\") +\n    geom_rect(aes(xmin = 50 + 150, xmax = 50 + 150 + 350, \n                  ymin = 0, ymax = 10), fill = \"gray70\") +\n    geom_rect(aes(xmin = 50 + 150 + 350, xmax = 50 + 150 + 350 + 250, \n                  ymin = 0, ymax = 8), fill = \"gray80\") +\n    geom_rect(aes(xmin = 50 + 150 + 350 +250, xmax = 50 + 150 + 350 + 250 +200, \n                  ymin = 0, ymax = 6), fill = \"gray90\")  +\n  ## 변동비 ------------\n    geom_rect(aes(xmin = 0, xmax = 50 + 150 + 350 + 250 +200, \n                  ymin = 0, ymax = 5), fill = \"white\", alpha = 0.1, color = \"blue\", linetype = \"dashed\")  +\n    labs(x = \"수요물량\",\n         y = \"가격\",\n         title = \"가격과 수요물량 관계: 서로 다른 5개 가격\") +\n     geom_hline(yintercept = 5, linetype = 2, color = \"gray70\") +\n     expand_limits(x =0, y =0) +\n     theme_bw(base_family = \"NanumGothic\") +\n     annotate(\"text\", x = 20, y = 6, label = \"변동비($5)\", size = 3)  +\n     scale_x_continuous(labels = scales::comma,\n                        breaks = c(0, 50, 50+150, 50+150+350, 50+150+350+250, 50+150+350+250+200)) +\n    geom_text_repel(aes(x = x, y =y, label = glue::glue(\"가격:{y}\\n물량:{x}\"))) +\n    annotate(\"text\", x = 500, y = 15, \n             label = glue::glue(\"총이익: {scales::comma(five_price_profit)}\"),\n             size = 5,\n             color = \"red\")  \n\nfive_price_g"
+  },
+  {
+    "objectID": "pricing.html#개-가격-1",
+    "href": "pricing.html#개-가격-1",
+    "title": "가격결정 중요성",
+    "section": "3.3 2개 가격",
+    "text": "3.3 2개 가격\n\n\n코드 보기\ntwo_price_profit <- segment_tbl %>% \n  mutate(lag_x = lag(x)) %>% \n  mutate(수요물량 = ifelse(is.na(lag_x), x, x - lag_x)) %>% \n  rename(\"가격\" = y) %>% \n  mutate(공헌이익 = 가격 - 5) %>%  # 변동비용 제외\n  select(가격, 공헌이익, 수요물량) %>% \n  mutate(가격정책 = case_when(가격 %in% c(20, 15) ~ \"고가\", \n                              가격 %in% c(10, 8)  ~ \"중가\", \n                              TRUE ~ \"저가\")) %>% \n  filter(가격정책 != \"저가\") %>% \n  group_by(가격정책) %>% \n  summarise(물량 = sum(수요물량),\n            공헌이익 = min(공헌이익)) %>% \n  mutate(이익 = 물량 * 공헌이익) %>% \n  summarise(총이익 = sum(이익)) %>% \n  pull(총이익)\n\ntwo_price_profit\n#> [1] 3800\n\n\n서로 다른 가격정책을 2개로 달리하게 되면 다음과 같이 3,800 을 얻게 되어 중간 정도 이익을 남기게 된다. 서로 다른 5개 가격정책 대신 2가지 가격정책을 실행에 옮겼을 때 동일한 로직을 동원하여 총이익을 시각화하면 다음과 같다.\n\n\n코드 보기\nlibrary(ggrepel)\n\ntwo_price_g <- segment_tbl %>% \n  mutate(color = ifelse(y %in% c(15,8), \"red\", \"black\")) %>% \n  ggplot(aes(x = x, y = y)) +\n    expand_limits(x =0, y =0) +\n    geom_point(aes(color = color)) +\n    geom_rect(aes(xmin = 0, xmax = 50, \n                  ymin = 0, ymax = 20), \n              alpha = 0.0, color = \"black\", linetype = \"dashed\") +\n    geom_rect(aes(xmin = 0, xmax = 50 + 150, \n                  ymin = 0, ymax = 15), fill = \"gray60\") +\n    geom_rect(aes(xmin = 50 + 150, xmax = 50 + 150 + 350, \n                  ymin = 0, ymax = 10), \n              alpha = 0.0, color = \"black\", linetype = \"dashed\") +\n    geom_rect(aes(xmin = 50 + 150, xmax = 50 + 150 + 350 + 250, \n                  ymin = 0, ymax = 8), fill = \"gray80\") +\n    geom_rect(aes(xmin = 50 + 150 + 350 +250, xmax = 50 + 150 + 350 + 250 +200, \n                  ymin = 0, ymax = 6), \n              alpha = 0.0, color = \"black\", linetype = \"dashed\") +\n    ## 변동비 -------\n    geom_rect(aes(xmin = 0, xmax = 50 + 150 + 350 + 250 +200, \n                  ymin = 0, ymax = 5), fill = \"white\", alpha = 0.1, color = \"blue\", linetype = \"dashed\")  +\n    labs(x = \"수요물량\",\n         y = \"가격\",\n         title = \"가격과 수요물량 관계: 서로 다른 2개 가격\") +\n     geom_hline(yintercept = 5, linetype = 2, color = \"gray70\") +\n     expand_limits(x =0, y =0) +\n     theme_bw(base_family = \"NanumGothic\") +\n     annotate(\"text\", x = 20, y = 6, label = \"변동비($5)\", size = 3)  +\n     scale_x_continuous(labels = scales::comma,\n                        breaks = c(0, 50, 50+150, 50+150+350, 50+150+350+250, 50+150+350+250+200)) +\n    geom_text_repel(aes(x = x, y =y, label = glue::glue(\"가격:{y}\\n물량:{x}\"))) +\n    scale_color_manual(values = c(\"black\" = \"black\", \"red\" = \"red\")) +\n    theme(legend.position = \"none\")  +\n    annotate(\"text\", x = 500, y = 15, \n           label = glue::glue(\"총이익: {scales::comma(two_price_profit)}\"),\n           size = 5,\n           color = \"red\")\n\ntwo_price_g"
+  },
+  {
+    "objectID": "pricing.html#물-1가",
+    "href": "pricing.html#물-1가",
+    "title": "가격결정 중요성",
+    "section": "3.4 1물 1가",
+    "text": "3.4 1물 1가\n\n\n코드 보기\none_price_profit <- segment_tbl %>% \n  mutate(lag_x = lag(x)) %>% \n  mutate(수요물량 = ifelse(is.na(lag_x), x, x - lag_x)) %>% \n  rename(\"가격\" = y) %>% \n  mutate(공헌이익 = 가격 - 5) %>%  # 변동비용 제외\n  filter(가격 >= 10) %>% \n  summarise(물량 = sum(수요물량)) %>% \n  mutate(총이익 = 물량 * 5) %>% \n  pull(총이익)\n\none_price_profit\n#> [1] 2750\n\n\n서로 다른 가격정책을 1개로 통일하면 다음과 같이 2,750 을 얻게되어 가장 적은 이익을 남기게 된다.\n\n\n코드 보기\n\none_price_g <- segment_tbl %>% \n  mutate(color = ifelse(y == 10, \"red\", \"black\")) %>% \n  ggplot(aes(x = x, y = y)) +\n    expand_limits(x =0, y =0) +\n    geom_point(aes(color = color)) +\n    geom_rect(aes(xmin = 0, xmax = 50, \n                  ymin = 0, ymax = 20), \n              alpha = 0.0, color = \"black\", linetype = \"dashed\") +\n    geom_rect(aes(xmin = 50, xmax = 50 + 150, \n                  ymin = 0, ymax = 15), \n              alpha = 0.0, color = \"black\", linetype = \"dashed\") +\n    geom_rect(aes(xmin = 0, xmax = 50 + 150 + 350, \n                  ymin = 0, ymax = 10), fill = \"gray50\") +\n    geom_rect(aes(xmin = 50 + 150 +350, xmax = 50 + 150 + 350 + 250, \n                  ymin = 0, ymax = 8),\n              alpha = 0.0, color = \"black\", linetype = \"dashed\") +\n    geom_rect(aes(xmin = 50 + 150 + 350 +250, xmax = 50 + 150 + 350 + 250 +200, \n                  ymin = 0, ymax = 6), \n              alpha = 0.0, color = \"black\", linetype = \"dashed\") +\n    ## 변동비 -------\n    geom_rect(aes(xmin = 0, xmax = 50 + 150 + 350 + 250 +200, \n                  ymin = 0, ymax = 5), fill = \"white\", alpha = 0.1, color = \"blue\", linetype = \"dashed\")  +\n    labs(x = \"수요물량\",\n         y = \"가격\",\n         title = \"가격과 수요물량 관계: 1 가격\") +\n     geom_hline(yintercept = 5, linetype = 2, color = \"gray70\") +\n     expand_limits(x =0, y =0) +\n     theme_bw(base_family = \"NanumGothic\") +\n     annotate(\"text\", x = 20, y = 6, label = \"변동비($5)\", size = 3)  +\n     scale_x_continuous(labels = scales::comma,\n                        breaks = c(0, 50, 50+150, 50+150+350, 50+150+350+250, 50+150+350+250+200)) +\n    geom_text_repel(aes(x = x, y =y, label = glue::glue(\"가격:{y}\\n물량:{x}\"))) +\n    scale_color_manual(values = c(\"black\" = \"black\", \"red\" = \"red\")) +\n    theme(legend.position = \"none\") +\n    annotate(\"text\", x =500, y = 15, \n             label = glue::glue(\"총이익: {scales::comma(one_price_profit)}\"),\n             size = 5,\n             color = \"red\")\n\none_price_g"
+  },
+  {
+    "objectID": "pricing.html#가격정책-비교",
+    "href": "pricing.html#가격정책-비교",
+    "title": "가격결정 중요성",
+    "section": "3.5 가격정책 비교",
+    "text": "3.5 가격정책 비교\n가격정책을 단일가, 2가지 가격, 5가지 가격을 달리 책정했을 경우 다른 조건을 모두 동일하게 두었을 경우(ceteris paribus 가정아래) 영업성과가 달라지는 것을 확인할 수 있다. 즉, 가격을 세분화하여 고객별로 달리 적용하면 총이익이 늘어나는 것을 알 수 있다.\n\n2,750 < 3,800 < 4,950\n\n\n\n\n\n\n코드 보기\none_price_g \n\n\n\n\n\n\n\n\n\n\n\n코드 보기\ntwo_price_g\n\n\n\n\n\n\n\n\n\n\n\n코드 보기\n\nfive_price_g \n\n\n\n\n\n\n\n\n\n\nFigure 1: 서로 다른 3가지 가격정책 비교"
+  },
+  {
+    "objectID": "py_ab_testing.html",
+    "href": "py_ab_testing.html",
+    "title": "수요곡선",
+    "section": "",
+    "text": "가격을 인상하거나 인하하게 되면 경제상황과 시장경쟁강도에 따라 수요가 탄력적으로 변화하게 된다. 다른 조건을 다 동일하게 두고 가격을 올리는 것이 유리한지 가격을 내리는 것이 유리한지 가격을 변동하게 되면 얼마의 가격변동폭을 두여야하는지 근거가 있다면 바로 실행하면 되고 만약 가격 변동에 따른 유불리를 판단할 수 없다면 실험을 설계하여 사업목표 달성을 위해 나아가는 것도 한 방법이다.\n\n\n\n\n\n실험을 여러가지 방식으로 설계를 할 수 있지만 가장 큰 대원칙은 다른 조건은 모두 동일하게 하고 단 하나의 요인만 변동을 시키고 실험의 효과를 정확히 관측하기 위해 모집단에서 표본을 동일하게 실험군(가격을 인상 혹은 인하)과 대조군(가격을 기존 가격 그대로 유지)으로 나눠 구매여부 혹은 클릭여부 등 실험목표에 유의적인 차이가 있는지를 데이터를 통해 확인하는 것이다.\n여기서 목표를 새로운 가격대를 탐색하는 것이 목적인지 예를 들어 시장에 전혀 나온적인 없는 신제품의 경우 가격 탐색을 목적으로 A/B 테스팅을 기획할 수 도 있다. 목표를 설정하고 문제를 해결할 것인지 새로운 기회를 찾을 것인지 정한 후에, 영역을 특정한 후에 가설을 세워 실제 데이터를 통해 검증하고 마지막으로 결과를 도출한다. 이 모든 과정에 데이터는 필수적으로 동반된다.\n\n\n\n\n\n\nNote\n\n\n\nA/B 테스팅 작업흐름\n목표설정 → 영역 설정 (문제/기회) → 가설 설정 → (가설) 검정 → 의사결정"
+  },
+  {
+    "objectID": "py_ab_testing.html#문제-정의-및-목표설정",
+    "href": "py_ab_testing.html#문제-정의-및-목표설정",
+    "title": "수요곡선",
+    "section": "2.1 문제 정의 및 목표설정",
+    "text": "2.1 문제 정의 및 목표설정\n기존 제품의 가격을 인하하게 되면 가격인하로 인해 매출도 늘고 경쟁업체에 고객 이탈도 막을 수 있다는 내부 검토를 거쳐 문제를 정의하고 목표를 설정한다."
+  },
+  {
+    "objectID": "py_ab_testing.html#기술-통계",
+    "href": "py_ab_testing.html#기술-통계",
+    "title": "수요곡선",
+    "section": "2.2 기술 통계",
+    "text": "2.2 기술 통계\n기존 가격을 인한한 후, 특정 기간동안 구매자 변화를 기록하여 분석한다. 기존 1만인 제품을 1천원 내려 구매량의 변화를 살펴보자.\n\n변경전: 1만원\n변경후: 9천원\n\n\n요약표시각화\n\n\n\n\n코드 보기\nab_testing_long = ab_testing.groupby(['AB테스팅', '구매여부'], as_index=False)['고객'].count()\n\nab_testing_wide = pd.pivot(ab_testing_long, index = '구매여부', columns = 'AB테스팅', values='고객')\n\nab_testing_wide['합계'] =  ab_testing_wide['변경전'] + ab_testing_wide['변경후']\n\nab_testing_wide  \n\n\n\n\n\n\n  \n    \n      AB테스팅\n      변경전\n      변경후\n      합계\n    \n    \n      구매여부\n      \n      \n      \n    \n  \n  \n    \n      0\n      9\n      8\n      17\n    \n    \n      1\n      1\n      2\n      3\n    \n  \n\n\n\n\n\n\n\n\n코드 보기\nimport matplotlib.pyplot as plt\nplt.rcParams['font.family'] = 'NanumGothic'\n\nx_val = ab_testing_wide.index\nbefore_val = ab_testing_wide['변경전']\nafter_val  = ab_testing_wide['변경후']\nwidth = 0.30\n\nplt.bar(x_val-0.2, before_val, width)\nplt.bar(x_val+0.2, after_val, width)\nplt.xticks(x_val, ['0', '1'])\n\nplt.title('웹사이트 가격 변경전후 A/B 테스팅')\nplt.xlabel('구매여부')\nplt.ylabel('구매구객수')\n\nplt.show()"
+  },
+  {
+    "objectID": "py_ab_testing.html#통계-검정",
+    "href": "py_ab_testing.html#통계-검정",
+    "title": "수요곡선",
+    "section": "2.3 통계 검정",
+    "text": "2.3 통계 검정\n상기 기술통계 및 시각화를 통해 가격변경 후 구매율이 높아진 것은 사실이다. 하지만, 이와 같은 차이가 우연에 의한 일시적 현상인지 아니면 통계적으로 가격인하 효과가 실제로 존재하는지 통계검정을 통해 확인한다.\n\\(\\hat{p}_{변경전} = 0.1\\) 구매율에서 가격인하에 따른 구매율이 \\(\\hat{p}_{변경후} = 0.2\\) 로 올라간 상황이 실질적인 가격인하효과에 따른 구매율 변동이 있다는 주장에 대해 \\(n=10\\) 방문객을 대상으로 판단하기는 이르다는 것이 \\(p-값\\) 이 신뢰수준 95%에서 나타나고 있다.\n\n\n코드 보기\nab_testing.groupby(['구매여부', 'AB테스팅'], as_index=False)['고객'].count() \n\nab_testing_prop = pd.pivot(ab_testing_long, index = 'AB테스팅', columns = '구매여부', values='고객').add_prefix('구매_')\n\nab_testing_prop['합계'] = ab_testing_prop['구매_0'] + ab_testing_prop['구매_1']\nab_testing_prop['구매율'] = ab_testing_prop['구매_1'] / ab_testing_prop['합계']\n\nab_testing_prop\n\n\n\n\n\n\n  \n    \n      구매여부\n      구매_0\n      구매_1\n      합계\n      구매율\n    \n    \n      AB테스팅\n      \n      \n      \n      \n    \n  \n  \n    \n      변경전\n      9\n      1\n      10\n      0.1\n    \n    \n      변경후\n      8\n      2\n      10\n      0.2\n    \n  \n\n\n\n\n\n\n코드 보기\nimport numpy as np\nfrom statsmodels.stats.proportion import proportions_ztest\n\npurchased = ab_testing_prop['구매_1'].tolist()\nprospect = ab_testing_prop['합계'].tolist()\n\nstat, pval = proportions_ztest(purchased, prospect, alternative = 'smaller')\nprint('{0:0.3f}'.format(pval))\n\n\n0.266\n\n\np-값이 0.266 으로 유의수준 0.05보다 크기 때문에 귀무가설을 기각할 수 없어 구매자가 1명 늘었지만 효과가 있다고 단정하기는 이르다고 볼 수 있다.\n\n\n\n\n동적가격책정(Dynamic Pricing) 방법론으로 자주 언급되는 톰슨 샘플링(Thompson Sampling)은 베이지안 통계 방법론에 근간을 두고 있다. 기존 사람이 다양한 연구를 바탕으로 가격을 선정하여 캠페인 등을 통해 실행에 옮기거나 A/B 테스팅과 같이 실험을 반복해서 주기적으로 최적 가격을 옮겨가는 방식이 아니라 톰슨 샘플링을 통해 최적의 가격을 실시간으로 책정하며 동적으로 유지하는 체계를 갖추기 위해 가장 기본이 되는 베타분포와 베르누이분포를 먼저 이해해야 한다.\n톰슨 샘플링을 통해 풀려고 하는 문제는 가격정책을 몇가지로 지정한 후 예를 들어 3가지로 정했다고 가정하면 3가지 가격정책을 고객에게 보여주고 실시간으로 구매 혹은 비구매, 클릭 혹은 비클릭, 가입 혹은 비가입과 같은 성공 혹은 실패 결과를 얻고 이를 다시 가격정책에 반영하여 최적 가격을 찾아가는 방식이다.\n이와 같은 동적 가격결정 방식을 구현하기 위해 수학적으로 가장 단순한 성공과 실패를 모형화하는데 베르누이 분포를 가정하고 지속적인 사후 확률분포 갱신을 위해 베르누이 분포의 켤레 사전분포로 베타분포를 선택하여 사후확률도 베타분포가 나오도록 하여 설계한다."
+  },
+  {
+    "objectID": "py_bayesian.html",
+    "href": "py_bayesian.html",
+    "title": "베이지안 통계",
+    "section": "",
+    "text": "동적가격책정(Dynamic Pricing) 방법론으로 자주 언급되는 톰슨 샘플링(Thompson Sampling)은 베이지안 통계 방법론에 근간을 두고 있다. 기존 사람이 다양한 연구를 바탕으로 가격을 선정하여 캠페인 등을 통해 실행에 옮기거나 A/B 테스팅과 같이 실험을 반복해서 주기적으로 최적 가격을 옮겨가는 방식이 아니라 톰슨 샘플링을 통해 최적의 가격을 실시간으로 책정하며 동적으로 유지하는 체계를 갖추기 위해 가장 기본이 되는 베타분포와 베르누이분포를 먼저 이해해야 한다.\n톰슨 샘플링을 통해 풀려고 하는 문제는 가격정책을 몇가지로 지정한 후 예를 들어 3가지로 정했다고 가정하면 3가지 가격정책을 고객에게 보여주고 실시간으로 구매 혹은 비구매, 클릭 혹은 비클릭, 가입 혹은 비가입과 같은 성공 혹은 실패 결과를 얻고 이를 다시 가격정책에 반영하여 최적 가격을 찾아가는 방식이다.\n이와 같은 동적 가격결정 방식을 구현하기 위해 수학적으로 가장 단순한 성공과 실패를 모형화하는데 베르누이 분포를 가정하고 지속적인 사후 확률분포 갱신을 위해 베르누이 분포의 켤레 사전분포로 베타분포를 선택하여 사후확률도 베타분포가 나오도록 하여 설계한다."
+  },
+  {
+    "objectID": "py_bayesian.html#감마와-베타-함수",
+    "href": "py_bayesian.html#감마와-베타-함수",
+    "title": "베이지안 통계",
+    "section": "1.1 감마와 베타 함수",
+    "text": "1.1 감마와 베타 함수\n베타함수는 다음과 같은 \\(\\Gamma\\) 함수로 표현할 수 있다. \\(\\Gamma\\) 함수는 자연수의 계승 또는 팩토리얼(factorial)을 의미하며 수식으로 표현하면 다음과 같다.\n\\[\\Gamma(n) = (n-1)!\\]\n베타함수는 이항분포에 나오는 이항계수를 실수범위로 확장하여 일반화하는 형태로 알려져 있다.\n\\[Beta(\\alpha, \\beta)=\\frac{\\Gamma(\\alpha)\\,\\Gamma(\\beta)}{\\Gamma(\\alpha+\\beta)}\\]"
+  },
+  {
+    "objectID": "py_bayesian.html#베타-분포-1",
+    "href": "py_bayesian.html#베타-분포-1",
+    "title": "베이지안 통계",
+    "section": "1.2 베타 분포",
+    "text": "1.2 베타 분포\n베타분포는 베르누이, 이항, 음이항, 기하 분포의 켤레 사전분포(Conjugate Prior)이면서 0과 1사이 비율과 퍼센트지 무작위 사건을 모형화하는데 유용하다. 예를 들어, 구매/비구매, 전환율 등이 0과 1사이 비율을 갖는 비결정사건으로 대입해볼 수 있다.\n사후 확률(Posterior Probability)이 사전 확률(Prior Probability) 분포와 같은 분포 계열에 속하는 경우 그 사전확률분포를 켤레 사전분포(Conjugate Prior)라고 하고 이 경우 사후확률을 계산하기 쉬운 장점이 크다.\n\\[Beta(\\alpha,\\beta):\\,\\, prob(x|\\alpha,\\beta)=\\frac{\\Gamma(\\alpha+\\beta)}{{\\Gamma(\\alpha)\\,\\Gamma(\\beta)}}x^{\\alpha-1}(1-x)^{\\beta-1}\\\\=\\frac{x^{\\alpha-1}(1-x)^{\\beta-1}}{B(\\alpha,\\beta)}\\]\n베타분포의 평균과 분산은 \\(\\alpha\\)와 \\(\\beta\\) 형태 모수를 사용하여 계산할 수 있다.\n\\[E(x)=\\mu = \\frac{\\alpha}{\\alpha + \\beta}\\]\n\\[V(x)=\\frac{\\alpha\\beta}{(\\alpha+\\beta)^{2}(\\alpha+\\beta+1)}\\]"
+  },
+  {
+    "objectID": "py_bayesian.html#시각화",
+    "href": "py_bayesian.html#시각화",
+    "title": "베이지안 통계",
+    "section": "1.3 시각화",
+    "text": "1.3 시각화\n예를 들어, \\(\\alpha=2,\\beta=2\\) 형태모수를 갖는 \\(Beta(\\alpha=2,\\beta=2)\\) 함수는 최고차항이 음의부호를 갖는 2차 방정식모양으로 표현할 수 있다. \\(\\alpha,\\beta\\) 형태모수를 달리하여 0 과 1 사이 유연하게 다양한 함수형태를 모형화할 수 있는 것이 보여주고 있다.\n\\[Beta(\\alpha=2,\\beta=2):\\,\\, prob(x|\\alpha,\\beta)=\\frac{\\Gamma(2+2)}{{\\Gamma(2)\\,\\Gamma(2)}}x^{2-1}(1-x)^{2-1}\\\\=\\frac{\\Gamma(4)}{{\\Gamma(2)\\,\\Gamma(2)}}x(1-x)=상수\\times(x-x^2)\\]\n\n\n코드 보기\nfrom scipy.stats import beta\nimport matplotlib.pyplot as plt\nimport numpy as np\n\nx = np.linspace(0, 1.0, 100)\ny1 = beta.pdf(x, 0.5, 0.5)\ny2 = beta.pdf(x, 2, 2)\ny3 = beta.pdf(x, 2, 5)\ny4 = beta.pdf(x, 5, 1)\n\nplt.subplot(2, 2, 1) \nplt.title('Beta(a:0.5, b:0.5)')\nplt.plot(x, y1, \"r-\")\n\nplt.subplot(2, 2, 2) \nplt.title('Beta(a:2, b:2)')\nplt.plot(x, y2, \"g-\")\n\nplt.subplot(2, 2, 3) \nplt.title('Beta(a:2, b:5)')\nplt.plot(x, y3, \"b--\")\n\nplt.subplot(2, 2, 4) \nplt.title('Beta(a:5, b:1)')\nplt.plot(x, y4, \"b--\")\n\nplt.tight_layout()\nplt.show()"
+  },
+  {
+    "objectID": "py_bayesian.html#베타분포-alpha-beta",
+    "href": "py_bayesian.html#베타분포-alpha-beta",
+    "title": "베이지안 통계",
+    "section": "1.4 베타분포 \\(\\alpha, \\beta\\)",
+    "text": "1.4 베타분포 \\(\\alpha, \\beta\\)\n베타분포 형태모수 \\(\\alpha, \\beta\\)를 달리할 때 분포의 모양을 살펴보자. 추후 베이지안 갱신을 통해 사후 베타분포가 베르누이 분포와 켤레분포로 사용될 경우 \\(\\alpha, \\beta\\) 값을 성공과 실패로 갱신할 땔 분포의 변화를 이해하는데 도움이 될 것이다.\n\n\n코드 보기\n# 데이터\nx = np.linspace(0, 1.0, 100)\ny11 = beta.pdf(x, 0.01, 0.01)\ny12 = beta.pdf(x, 0.01, 1)\ny13 = beta.pdf(x, 1, 0.01)\ny21 = beta.pdf(x, 1, 1)\ny22 = beta.pdf(x, 1, 2)\ny23 = beta.pdf(x, 1, 3)\ny31 = beta.pdf(x, 2, 1)\ny32 = beta.pdf(x, 3, 1)\ny33 = beta.pdf(x, 4, 1)\ny41 = beta.pdf(x, 4, 2)\ny42 = beta.pdf(x, 4, 3)\ny43 = beta.pdf(x, 4, 4)\n\n# 1번째 행 ===============\nplt.subplot(4, 3, 1) \nplt.title('Beta(a:0, b:0)')\nplt.plot(x, y11, \"r-\")\n\nplt.subplot(4, 3, 2) \nplt.title('Beta(a:0, b:1)')\nplt.plot(x, y12, \"r-\")\n\nplt.subplot(4, 3, 3) \nplt.title('Beta(a:1, b:0)')\nplt.plot(x, y13, \"r-\")\n\n# 2번째 행 ===============\nplt.subplot(4, 3, 4) \nplt.title('Beta(a:1, b:1)')\nplt.plot(x, y21, \"r-\")\n\nplt.subplot(4, 3, 5) \nplt.title('Beta(a:1, b:2)')\nplt.plot(x, y22, \"r-\")\n\nplt.subplot(4, 3, 6) \nplt.title('Beta(a:1, b:3)')\nplt.plot(x, y23, \"r-\")\n\n# 3번째 행 ===============\nplt.subplot(4, 3, 7) \nplt.title('Beta(a:2, b:1)')\nplt.plot(x, y31, \"r-\")\n\nplt.subplot(4, 3, 8) \nplt.title('Beta(a:3, b:1)')\nplt.plot(x, y32, \"r-\")\n\nplt.subplot(4, 3, 9) \nplt.title('Beta(a:4, b:1)')\nplt.plot(x, y33, \"r-\")\n\n# 4번째 행 ===============\nplt.subplot(4, 3, 10) \nplt.title('Beta(a:4, b:2)')\nplt.plot(x, y41, \"r-\")\n\nplt.subplot(4, 3, 11) \nplt.title('Beta(a:4, b:3)')\nplt.plot(x, y42, \"r-\")\n\nplt.subplot(4, 3, 12) \nplt.title('Beta(a:4, b:4)')\nplt.plot(x, y43, \"r-\")\n\nplt.tight_layout()\nplt.show()"
+  },
+  {
+    "objectID": "py_bayesian.html#구매-혹은-비구매",
+    "href": "py_bayesian.html#구매-혹은-비구매",
+    "title": "베이지안 통계",
+    "section": "2.1 구매 혹은 비구매",
+    "text": "2.1 구매 혹은 비구매\n오프라인에서 고객별로 구매 혹은 비구매, 온라인에서는 구독 혹은 비구독, 클릭 혹은 비클릭 등과 같이 고객의 행동을 달리 표현할 수 있다. 이와 같은 구매 혹은 비구매는 성공 혹은 실패를 나타내는 베르누이 시행으로 표현할 수 있다. 여기서 \\(\\theta\\)는 구매확률을 나타낸다.\n\\[X \\sim Bernoulli (\\theta)\\] 확률밀도함수는 다음과 같다. 여기서 \\(\\theta=0,1\\) 성공과 실패값을 갖게 된다.\n\\[p(x|\\theta) = \\theta^x (1-\\theta)^{1-x}\\]"
+  },
+  {
+    "objectID": "py_bayesian.html#가능도",
+    "href": "py_bayesian.html#가능도",
+    "title": "베이지안 통계",
+    "section": "2.2 가능도",
+    "text": "2.2 가능도\n사후확률은 사전확률 곱하기 가능도로 정의된다. 따라서, 사전확률은 \\(Beta(\\alpha, \\beta)\\)로 정의하고 베르누이 가능도 함수를 구해 둘을 곱하게 되면 사후확률을 구할 수 있다. 먼저 가능도는 다음과 같이 계산된다.\n\\[\nL(\\theta;x) = p(\\{x_i\\}|\\theta) = \\prod_{i} p(x_i|\\theta)\\\\ = \\prod_{i} \\theta^{x_i}(1-\\theta)^{1-x_i}\\\\=\\theta^{\\sum_{i}{x_i}}(1-\\theta)^{\\sum_i{(1-x_i )}}\\\\=\\theta^{구매횟수}(1-\\theta)^{비구매횟수}\n\\]"
+  },
+  {
+    "objectID": "py_bayesian.html#사후확률",
+    "href": "py_bayesian.html#사후확률",
+    "title": "베이지안 통계",
+    "section": "2.3 사후확률",
+    "text": "2.3 사후확률\n베르누이분포의 사전확률 켤레분포가 베타분포로 치환하여 둘을 곱하게 되면 사후확률을 구할 수 있다.\n\\[\np(\\theta|z,N) = \\frac{p(z,N|\\theta)p(\\theta)}{p(z,N)} \\approx\nL(\\theta;x) \\times p(\\theta)\n\\]\n사전분포를 베타분포로 두고 베르누이분포의 가능도 함수를 활용하여 사후확률을 구하면 다음과 같이 수식으로 표현할 수 있다.\n\\[\n\\begin{aligned}\np(\\theta \\mid X)\n&\\propto \\theta^{\\alpha + \\sum x_t - 1} (1 - \\theta)^{\\beta + N - \\sum x_t - 1}\n\\\\\n&\\qquad \\qquad \\downarrow\n\\\\\n\\theta \\mid X &\\sim \\text{Beta}\\Big(\\alpha + \\sum_{t=1}^{n} x_t, \\beta + N - \\sum_{t=1}^{n} x_t \\Big).\n\\end{aligned}\n\\]"
+  },
+  {
+    "objectID": "py_bayesian.html#사전분포",
+    "href": "py_bayesian.html#사전분포",
+    "title": "베이지안 통계",
+    "section": "3.1 사전분포",
+    "text": "3.1 사전분포\n양극단이 적고 중앙이 두툼한 형태 정규분포 비슷한 사전분포를 가정한다.\n\n\n코드 보기\nplt.rcParams['font.family'] = 'NanumGothic'\nx = np.linspace(0, 1.0, 100)\nprior_y = beta.pdf(x, 2, 2)\n\nplt.subplot(2, 2, 4) \nplt.title('사전분포 - 형태모수(a:2, b:2)를 갖는 베타분포')\nplt.plot(x, prior_y, \"b\")\n\nplt.tight_layout()\nplt.show()"
+  },
+  {
+    "objectID": "py_bayesian.html#실제구매-데이터",
+    "href": "py_bayesian.html#실제구매-데이터",
+    "title": "베이지안 통계",
+    "section": "3.2 실제구매 데이터",
+    "text": "3.2 실제구매 데이터\n고객 \\(N\\) 명중 \\(n\\) 명이 구매를 했다고 가정하자. 예를 들어, 광고 캠페인에 \\(N=10\\) 명에게 문자를 돌려 \\(n=6\\)이 구매를 한 경우 가능도를 아래와 같이 베타분포로 표현할 수 있다.\n\n\n코드 보기\nimport math\n\nlikelihoods = []\n\nprob_space = np.linspace(0, 1.0, 100)\n\nfor i in range(0, len(prob_space)):\n    likelihood = beta.pdf(prob_space[i], 10, 6)\n    likelihoods.append(likelihood)\n    # print(likelihood)\n\nplt.plot(prob_space, likelihoods)\nplt.title('가능도 함수 - 형태모수(\\u03b1=6, \\u03b2=4)를 갖는 베타분포')\nplt.show()\n\nprob_space[np.argmax(likelihoods)]\n\n\n\n\n\n\n\n\n\n0.6464646464646465"
+  },
+  {
+    "objectID": "py_bayesian.html#사후확률-1",
+    "href": "py_bayesian.html#사후확률-1",
+    "title": "베이지안 통계",
+    "section": "3.3 사후확률",
+    "text": "3.3 사후확률\n베타분포를 사전확률로 갖고 베르누이/이항분포를 결합한 사후확률은 갱신된 형태모수 \\(\\alpha, \\beta\\)를 갖는 베타분포입니다. 따라서,\n\\[사전분포 \\sim Beta(2,2) \\qquad \\rightarrow \\qquad 사후분포 \\sim Beta(2+6, 2+10-6)\\]\n\n\n코드 보기\nposteriors = []\n\nprob_space = np.linspace(0, 1.0, 100)\n\nfor i in range(0, len(prob_space)):\n    posterior = beta.pdf(prob_space[i], 8, 6)\n    posteriors.append(posterior)\n    # print(posterior)\n\nplt.plot(prob_space, posteriors)\nplt.title('사후분포  - 형태모수(\\u03b1=8, \\u03b2=6)를 갖는 베타분포')\nplt.show()\n\nprob_space[np.argmax(posteriors)]\n\n\n\n\n\n\n\n\n\n0.5858585858585859"
+  },
+  {
+    "objectID": "py_bayesian.html#결합",
+    "href": "py_bayesian.html#결합",
+    "title": "베이지안 통계",
+    "section": "3.4 결합",
+    "text": "3.4 결합\n앞서 각기 달리 시각화한 것을 사전, 가능도, 사후 분포를 함께 살펴보자. 0.5 전후 구매확률이 있다고 사전분포를 가정한 후 실제 데이터를 통해 수집된 내용은 10명 중 6명이 구매를 한 것이 확인되었다. 이를 바탕으로 사전분포와 가능도를 결합하여 사후 구매확률을 자동으로 갱신할 수 있다.\n\n나눠보기합쳐보기\n\n\n\n\n코드 보기\n# 사전분포 ===============\nplt.subplot(3, 1, 1)\nx = np.linspace(0, 1.0, 100)\ny_prior = beta.pdf(x, 2, 2)\n\nplt.plot(x, y_prior, \"g\")\nplt.title('Beta(\\u03b1=2, \\u03b2=2)')\n\n# 가능도 분포 ===============\nplt.subplot(3, 1, 2) \nplt.plot(prob_space, likelihoods, \"b\")\nplt.title('\"가능도 함수 - 형태모수(\\u03b1=6, \\u03b2=4)를 갖는 베타분포\",')\n\n# 사후분포 ===============\nplt.subplot(3, 1, 3) \nplt.plot(prob_space, posteriors, \"r\")\nplt.title('사후분포  - 형태모수(\\u03b1=8, \\u03b2=6)를 갖는 베타분포')\n\nplt.tight_layout()\nplt.show()\n\n\n\n\n\n\n\n\n\n\n\n\n\n코드 보기\nplt.title('사후분포  - 형태모수(\\u03b1=8, \\u03b2=6)를 갖는 베타분포')\n# plt.subtitle('사전, 가능도, 사후 분포')\n\nplt.plot(x, y_prior, \"g\")\nplt.plot(prob_space, likelihoods, \"b\")\nplt.plot(prob_space, posteriors, \"r\")\n\nplt.legend([\"사전분포\", \"가능도\", \"사후분포\"], loc=1)\nplt.tight_layout()\nplt.show()"
+  },
+  {
+    "objectID": "py_demand_curve.html",
+    "href": "py_demand_curve.html",
+    "title": "수요곡선",
+    "section": "",
+    "text": "가격 결정에서 독과점 구조에서 가격을 직접 결정할 수 있는 시장이 아닌 경우 고객 수요를 파악하는 것은 무척 중요하다. 여기서, 독점기업은 대체 불가능한 제품 혹은 서비스를 유일하게 공급하는 기업을 의미한다. 일반적으로 가격 변화에 모든 수요물량을 정확히 알 수가 없기 때문에 다음 데이터를 가지고 수요 곡선을 가정해보자.\n\n\n코드 보기\nlibrary(tidyverse)\nlibrary(ggrepel)\n\nsegment_tbl <- tibble( x = c(50, \n                             50+150, \n                             50+150+350, \n                             50+150+350+250,\n                             50+150+350+250+200),\n                       y = c(20, 15, 10, 8, 6))\n\n\n\nsegment_tbl %>% \n  ggplot(aes(x = x, y = y)) +\n    geom_point() +\n    labs(x = \"수요물량\",\n         y = \"가격\",\n         title = \"가격과 수요물량 관계\") +\n     geom_hline(yintercept = 5, linetype = 2, color = \"gray70\") +\n     expand_limits(x =0, y =0) +\n     theme_bw(base_family = \"NanumGothic\") +\n     annotate(\"text\", x = 1, y = 6, label = \"변동비\", size = 3)\n\n\n\n\n\n\n\n\n\n가격 변화에 따라 관측된 5개 관측점을 선형 모형을 가정하여 난수를 발생하여 다양한 가격에 따른 물량을 시각화해보자. 실무에서는 자사의 가격변화를 달리하여 수많은 가격별 수요물량을 산출하는 것은 불가능하지만 경우에 따라서 경쟁제품이 많고 업력이 오래된 경우 가격별 물량 데이터를 얻어 회귀식으로부터 수요곡선을 도출하는 방법도 존재한다.\n\n\n코드 보기\n## Price Response 곡선 ------------\nmodel_tbl <- segment_tbl %>% \n  rename(물량 = x, 가격 = y)\n\nprice_response_lm <- lm(물량 ~ 가격, data = model_tbl)\n\ngenerate_demands <- function(price) {\n  \n  price_response_coef <- coef(price_response_lm)\n  error <- rnorm(length(price), mean = 0, sd = sd(model_tbl$물량))\n  \n  quantity <- price_response_coef[1] + price_response_coef[2] * price + error\n  \n  return(quantity)\n}\n\n## 시각화 --------\nprice_seq <- seq(0, 30, 1)\nquantity_seq <- generate_demands(price_seq)\n\noptimal_tbl <- tibble(가격 = price_seq, 수요물량 = quantity_seq)\n\noptimal_tbl %>% \n  ggplot(aes( x= 가격, y = 수요물량)) +\n    geom_point() +\n    geom_smooth(method='lm') +\n    geom_hline(yintercept = 5, linetype = 2, color = \"gray70\") +\n    expand_limits(x =0, y =0) +\n    theme_bw(base_family = \"NanumGothic\") +\n    annotate(\"text\", x = 1, y = 6, label = \"변동비\", size = 3)"
+  },
+  {
+    "objectID": "py_demand_curve.html#상수-수요모형",
+    "href": "py_demand_curve.html#상수-수요모형",
+    "title": "수요곡선",
+    "section": "2.1 상수 수요모형",
+    "text": "2.1 상수 수요모형\n예를 들어 가격을 수요물량에 관계없이 일정가격 10을 가정할 경우 다음과 같다. 하지만 물량에는 한계가 있어 특정 물량((1,500)을 넘어가게 되면 공급을 더이상 할 수 없으니 가격은 0이 된다.\n\n\n코드 보기\n## 시각화 ---------------\nstep_tbl <- tribble(~\"x\", ~\"y\",\n        0, 10,\n        1250, 10,\n        1250,0,\n        2000,0)\n\nsegment_tbl %>% \n  ggplot(aes(x = x, y = y)) +\n    geom_point() +\n    labs(x = \"수요물량\",\n         y = \"가격\",\n         title = \"가격과 수요물량 관계\") +\n     geom_hline(yintercept = 5, linetype = 2, color = \"gray70\") +\n     expand_limits(x =0, y =0) +\n     theme_bw(base_family = \"NanumGothic\") +\n     annotate(\"text\", x = 30, y = 6, label = \"변동비($5)\", size = 3)  +\n     scale_x_continuous(labels = scales::comma)  +\n     expand_limits(x = c(0, 2000)) +\n     geom_path(data = step_tbl, aes(x = x, y = y), color = \"blue\")"
+  },
+  {
+    "objectID": "py_demand_curve.html#선형-회귀-모형",
+    "href": "py_demand_curve.html#선형-회귀-모형",
+    "title": "수요곡선",
+    "section": "2.2 선형 회귀 모형",
+    "text": "2.2 선형 회귀 모형\n수요함수(\\(d(P)\\), price-response function)를 선형으로 가정하고 Price-Response 함수를 추정해보자. 가격과 수요함수를 선형회귀식을 통해 추정할 경우 모수가 3개라서 관측점이 2개 이상이면 선형회귀방정식을 도출해낼 수 있다. 선형회귀식이 가격별 수요물량을 제대로 모형으로 일반화할 수 있는지 시각화를 통해 검증하는 방식이 혹시라도 생길 수 있는 전산 오류 혹은 이상점에 따른 불확실성 제거를 위해서도 꼭 필요한 과정이다.\n\n\n코드 보기\n## 비선형 수요모형 ---------\n\nlm_mod <- lm(y ~ x, data = segment_tbl)\n\nlm_coef <- broom::tidy(lm_mod) %>% \n  pull(estimate)\n\nlm_fn <- function(x) lm_coef[1] + lm_coef[2] * x\n\n## 시각화 ---------------\nsegment_tbl %>% \n  ggplot(aes(x = x, y = y)) +\n    geom_point() +\n    geom_function(fun = lm_fn, color = \"blue\") +\n    labs(x = \"수요물량\",\n         y = \"가격\",\n         title = \"가격과 수요물량 관계\") +\n     geom_hline(yintercept = 5, linetype = 2, color = \"gray70\") +\n     expand_limits(x =0, y =0) +\n     theme_bw(base_family = \"NanumGothic\") +\n     annotate(\"text\", x = 20, y = 6, label = \"변동비($5)\", size = 3)  +\n     scale_x_continuous(labels = scales::comma)"
+  },
+  {
+    "objectID": "py_demand_curve.html#비선형-회귀모형",
+    "href": "py_demand_curve.html#비선형-회귀모형",
+    "title": "수요곡선",
+    "section": "2.3 비선형 회귀모형",
+    "text": "2.3 비선형 회귀모형\n수요함수(\\(d(P)\\), price-response function)를 선형회귀식을 가정한 경우 변동율이 일정하다고 가정했지만 경우에 따라서 가격에 민감하게 반응하는 탄력성을 갖는 경우 특정 가격대에서는 급격한 수요변화를 일정 가격대를 넘게 되면 완만한 수요변화를 가정하는 것도 합리적이다. 이와 같은 가격대별로 비선형 가격탄력성을 갖는 관계를 비선형 회귀곡선으로 적합시켜 후속 업무에 활용할 수 있다.\n\\[d(P) = e^{\\alpha + \\beta \\times log(P)}\\]\n\n\n코드 보기\n## 비선형 수요모형 ---------\nget_coef <- function() {\n  x <- segment_tbl$x\n  y <- segment_tbl$y\n  \n  demand_fit <- nls(y ~ exp(a + b * log(x)), start=list(a=0, b=0))\n  \n  nls_coef <- broom::tidy(demand_fit) %>% \n    pull(estimate)\n  return(list(a = nls_coef[1],\n              b = nls_coef[2]))\n}\n\nnls_coef <- get_coef()\n\nnls_fn <- function(x) exp(nls_coef$a + nls_coef$b * log(x))\n\n## 시각화 ---------------\nsegment_tbl %>% \n  ggplot(aes(x = x, y = y)) +\n    geom_point() +\n    geom_function(fun = nls_fn, color = \"blue\") +\n    labs(x = \"수요물량\",\n         y = \"가격\",\n         title = \"가격과 수요물량 관계\") +\n     geom_hline(yintercept = 5, linetype = 2, color = \"gray70\") +\n     expand_limits(x =0, y =0) +\n     theme_bw(base_family = \"NanumGothic\") +\n     annotate(\"text\", x = 20, y = 6, label = \"변동비($5)\", size = 3)  +\n     scale_x_continuous(labels = scales::comma)"
+  },
+  {
+    "objectID": "thompson.html",
+    "href": "thompson.html",
+    "title": "톰슨 샘플링",
+    "section": "",
+    "text": "사업목표를 달성할 수 있는 가격을 정해야하는데 문제는 적정 가격이 얼마인지 알 수 없다는 점이다. 사업과 과학기술 연구개발은 목적이 다르기 때문에 사업목표를 달성하는 가장 큰 기여를 하는 가격을 책정한 후에 특정된 가격을 실제 사업에 반영하여 매출 혹은 순익, 고객유지율 등 당면한 문제해결에 기여해야 한다.\n이와 같은 상황에 최적 가격을 탐색(Explore)하는 과정과 특정된 가격을 최대한 활용(Exploit)하여 사업목표를 극대화해야만 된다."
+  },
+  {
+    "objectID": "thompson.html#수요-확률분포",
+    "href": "thompson.html#수요-확률분포",
+    "title": "톰슨 샘플링",
+    "section": "2.1 수요 확률분포",
+    "text": "2.1 수요 확률분포\n수요변화를 정규분포를 가정하고 모형을 세우면 다음과 같은 모습이 될 것이다. 즉, 수요는 가격에 따라 특정 수요량으로 고정된 것이 아니라 앞서 언급한 사회경제, 주변 경쟁업체 수, 다양한 가격정책 등에 따라 수요는 변동성을 갖게 된다. 평균\n\n\n코드 보기\nlibrary(tidyverse)\n#> ── Attaching packages ─────────────────────────────────────── tidyverse 1.3.1 ──\n#> ✔ ggplot2 3.3.6      ✔ purrr   0.3.4 \n#> ✔ tibble  3.1.8      ✔ dplyr   1.0.10\n#> ✔ tidyr   1.2.1      ✔ stringr 1.4.1 \n#> ✔ readr   2.1.2      ✔ forcats 0.5.2\n#> Warning: 패키지 'tibble'는 R 버전 4.2.1에서 작성되었습니다\n#> Warning: 패키지 'tidyr'는 R 버전 4.2.1에서 작성되었습니다\n#> Warning: 패키지 'dplyr'는 R 버전 4.2.1에서 작성되었습니다\n#> Warning: 패키지 'stringr'는 R 버전 4.2.1에서 작성되었습니다\n#> Warning: 패키지 'forcats'는 R 버전 4.2.1에서 작성되었습니다\n#> ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──\n#> ✖ dplyr::filter() masks stats::filter()\n#> ✖ dplyr::lag()    masks stats::lag()\n## 1. 데이터 -------------\ncoffee_tbl <- tribble(~\"가격\", ~\"수요\",\n                      1000, 120,\n                      2000, 80,\n                      3000, 40,\n                      4000, 20)\n\n## 2. 정규분포 -------------\n\nggplot(data = data.frame(x = c(0, 180)), aes(x)) +\n  scale_y_continuous(breaks = NULL) +\n  ## 가격 1,000원 ------\n  stat_function(fun = dnorm, n = 101, \n                args = list(mean = 120, sd = 15)) + \n  geom_point(aes(x=120, y=0), size =3) +  \n  ## 가격 2,000원 ------\n  stat_function(fun = dnorm, n = 101, \n                args = list(mean = 80, sd = 10), color=\"red\") +\n  geom_point(aes(x=80, y=0), size =3, color = \"red\") +  \n  ## 가격 3,000원 ------  \n  stat_function(fun = dnorm, n = 101, \n                args = list(mean = 40, sd = 7), color=\"blue\") +\n  geom_point(aes(x=40, y=0), size =3, color = \"blue\") +  \n  ## 가격 4,000원 ------  \n  stat_function(fun = dnorm, n = 101, \n                args = list(mean = 20, sd = 5), color=\"orange\") +  \n  geom_point(aes(x=20, y=0), size =3, color = \"orange\") +  \n  theme_minimal() +\n  labs(title = \"가격별 예상판매 커피수 확률분포\",\n       x = \"커피 판매량 (단위: 컵)\",\n       y = \"\") +\n  geom_text(aes(x = 120, y = 0.01, label = \"1천원\"), color = \"black\") +\n  geom_text(aes(x = 80,  y = 0.01, label = \"2천원\"), color = \"red\") +\n  geom_text(aes(x = 40,  y = 0.01, label = \"3천원\"), color = \"blue\") +\n  geom_text(aes(x = 20,  y = 0.01, label = \"4천원\"), color = \"orange\")"
+  },
+  {
+    "objectID": "thompson.html#가격별-커피-판매량",
+    "href": "thompson.html#가격별-커피-판매량",
+    "title": "톰슨 샘플링",
+    "section": "2.2 가격별 커피 판매량",
+    "text": "2.2 가격별 커피 판매량\n가격 변동에 따라 매출이 어떻게 변화하게 되는지 각 분포에서 난수를 추출하여 모의실험을 수행해보자.\n\\[ X_{\\text{커피 판매량}} \\sim \\mathcal{N}(\\mu,\\,\\sigma^{2})\\]\n\n\\(X_{\\text{1천원}} \\sim \\mathcal{N}(120,\\, 15^{2})\\)\n\\(X_{\\text{2천원}} \\sim \\mathcal{N}(80, \\, 10^{2})\\)\n\\(X_{\\text{3천원}} \\sim \\mathcal{N}(40, \\, 7^{2})\\)\n\\(X_{\\text{4천원}} \\sim \\mathcal{N}(20, \\, 5^{2})\\)\n\n상기 4가지 가격정책에 대해 1,000개 난수를 추출하여 판매량을 예측해본다.\n\n\n코드 보기\ncoffee_quantity <- tribble(~\"mean\", ~\"sd\",\n        120, 15,\n        80, 10,\n        40, 7,\n        20, 5) %>% \n  mutate(price = case_when(mean == 120 ~ \"1천원\",\n                           mean ==  80 ~ \"2천원\",\n                           mean ==  40 ~ \"3천원\",\n                           mean ==  20 ~ \"4천원\"))\n\ncoffee_quantity_data <- coffee_quantity %>% \n  mutate(판매량 = map2(mean, sd, rnorm, n = 1000) )\n\ncoffee_quantity_data\n#> # A tibble: 4 × 4\n#>    mean    sd price 판매량       \n#>   <dbl> <dbl> <chr> <list>       \n#> 1   120    15 1천원 <dbl [1,000]>\n#> 2    80    10 2천원 <dbl [1,000]>\n#> 3    40     7 3천원 <dbl [1,000]>\n#> 4    20     5 4천원 <dbl [1,000]>\n\n\ncoffee_quantity_data %>% \n  unnest(판매량) %>% \n  ggplot(aes(x = 판매량, fill = fct_rev(price))) +\n    geom_histogram(alpha = 0.7, position = \"identity\") +\n    labs(title = \"가격별 예상판매 모의 커피수\",\n         x = \"커피 판매량 (단위: 컵)\",\n         y = \"\",\n         fill = \"커피가격\") +\n    theme_bw() +\n    theme(legend.position = \"top\")\n#> `stat_bin()` using `bins = 30`. Pick better value with `binwidth`."
+  },
+  {
+    "objectID": "thompson.html#가격별-매출확률분포",
+    "href": "thompson.html#가격별-매출확률분포",
+    "title": "톰슨 샘플링",
+    "section": "2.3 가격별 매출확률분포",
+    "text": "2.3 가격별 매출확률분포\n가격 변화에 따라 판매량이 가격민감도에 따라 차이가 나기 때문에 모의시험을 통해 매출변화를 살펴보면 커피값 2,000원에서 가장 높은 매출이 나타났다. 가격이 4,000원일 때 상대적으로 낮은 매출이 나왔으며 2,000/3,000원에서는 대략 유사한 매출이 관측됐다.\n\n\n코드 보기\ncoffee_quantity_data %>% \n  unnest(판매량) %>% \n  mutate(가격 = case_when(mean == 120 ~ 1000,\n                           mean ==  80 ~ 2000,\n                           mean ==  40 ~ 3000,\n                           mean ==  20 ~ 4000)) %>% \n  mutate(매출 = 가격 * 판매량 / 10^4) %>% \n    ggplot(aes(x = 매출, fill = as.factor(가격))) +\n    geom_histogram(alpha = 0.7, position = \"identity\") +\n    labs(title = \"일일 가격별 예상매출 모의시험 결과\",\n         x = \"커피 매출 (단위: 만원)\",\n         y = \"\",\n         fill = \"커피가격\") +\n    theme_bw() +\n    theme(legend.position = \"top\")\n#> `stat_bin()` using `bins = 30`. Pick better value with `binwidth`."
+  },
+  {
+    "objectID": "thompson.html#최고의-맛집",
+    "href": "thompson.html#최고의-맛집",
+    "title": "톰슨 샘플링",
+    "section": "3.1 최고의 맛집",
+    "text": "3.1 최고의 맛집\n커피집 3곳에 동시에 오픈을 했는데 100명이 커피집을 골고루 방문한 후에 만족한 고객숫자와 불만족한 고객숫자를 다음과 같이 설정하고 10 영업일 기준 최고맛집을 선정할 수 있다. 먼저 베타분포에서 각 커피점 방문 고객 만족자수와 불만족 고객수를 형태모수로 넣어 10 영업일 기준 최고의 맛집을 선정한다.\n\n\n코드 보기\n# 커피점 방문 숫자\nbeta_visits <- c(100, 100, 100)\n# 커피집 만족 고객수\nbeta_success <- c(10, 11, 15)\n# 커피집 불만족 고객수\nbeta_failure <- beta_visits - beta_success\n\nnum_shops <- length(beta_visits)\n# 영업일수\nnum_days <- 10 \n# 베타분포 (성공, 실패) 하루 영업일\n\none_day_tbl <- tibble(\"A커피점\" = rbeta(1, 1+beta_success[1], 1+beta_failure[1]),\n                      \"B커피점\" = rbeta(1, 1+beta_success[2], 1+beta_failure[2]),\n                      \"C커피점\" = rbeta(1, 1+beta_success[3], 1+beta_failure[3]))\n\n# tibble(beta_success, beta_failure) %>% \n#   mutate(data = map2_dbl(beta_success, beta_failure, rbeta, n=1))\n\n\n# 베타분포 (성공, 실패) N 영업일\ncoffee_tbl <- tibble()\n\nfor(i in 1:num_days) {\n  \n  one_day_tbl <- tibble(\"A커피점\" = rbeta(1, 1+beta_success[1], 1+beta_failure[1]),\n                        \"B커피점\" = rbeta(1, 1+beta_success[2], 1+beta_failure[2]),\n                        \"C커피점\" = rbeta(1, 1+beta_success[3], 1+beta_failure[3]))\n\n  coffee_tbl <- bind_rows(coffee_tbl, one_day_tbl)\n}\n\n# 커피집 선정\ncoffee_tbl %>% \n  mutate(오늘의맛집 = max.col(coffee_tbl)) %>% \n  mutate(오늘의맛집 = factor(오늘의맛집, labels = c(\"A커피점\", \"B커피점\", \"C커피점\"))) %>% \n  group_by(오늘의맛집) %>% \n  summarise(선정횟수 = n()) %>% \n  mutate(선정비율 = 선정횟수 / sum(선정횟수))\n#> # A tibble: 3 × 3\n#>   오늘의맛집 선정횟수 선정비율\n#>   <fct>         <int>    <dbl>\n#> 1 A커피점           2      0.2\n#> 2 B커피점           4      0.4\n#> 3 C커피점           4      0.4"
+  },
+  {
+    "objectID": "thompson.html#커피집-선정과정",
+    "href": "thompson.html#커피집-선정과정",
+    "title": "톰슨 샘플링",
+    "section": "3.2 커피집 선정과정",
+    "text": "3.2 커피집 선정과정\n톰슨 샘플링을 통해 커피집 선정과 가격결정 등 주요 의사결정에 있어 장점은 자기수정기능이 있다는 점이다. 예를 들어, 매월 커피집 선정과 가격절정 등 수집된 실증 사업데이터를 자동갱신하여 사업을 계속할 수 있다.\n예를 들어, 다음과 같이 서로 다른 세가지 특성(다른 조건은 동일하고 가격이 다소 다른 커피집)을 갖는 취하는 커피집이 있다고 하면 미세한 차이가 나지만 이러한 작은 차이가 매월매월 지나면서 방문자수에서 차이가 나고 사업의 성패를 좌우하게 됩니다.\n베르누이 밴딧을 상정하고 톰슨 샘플링을 구현한 의사코드는 다음과 같다. 형태모수 \\(\\alpha, \\beta\\)를 베타분포에서 보통 \\(\\alpha=1, \\beta=1\\)로 지정하여 균등분포로 두고 성공과 실패를 고객의 방문, 온라인광고의 경우 노출시 클릭여부로 두고 알고리즘 전반을 설정한다. 그리고 나서 K개 커피집(여기서는 3개)에 대해 T명 지나가는 행인(여기서는 100명)을 반복하는 난수를 베타분포에서 추출한다. 이후 가장 많은 방문을 갖는 커피집을 선정하고 나서 성공과 실패를 갱신한다.\n의사 알고리즘 이미지 출처: 카카오 AI추천 : 토픽 모델링과 MAB를 이용한 카카오 개인화 추천\n\n\n\n톰슨 샘플링 의사코드\n\n\n\n\n코드 보기\nset.seed(77777)\n## 설정 --------------------\ncoffee_tbl <- {}\n\nsuccess_prob <- c(0.10, 0.11, 0.15)\nbeta_visits  <- rep(0, length(success_prob))\nbeta_success <- rep(0, length(success_prob))\n\nnum_shops  <- length(success_prob)\n\nvisits_size <- 100\n\n## 1개월 영업 -------------------\nget_monthly_prob <- function(beta_visits, beta_success) {\n  \n  monthly_coffee <- tibble()\n  \n  # 영업일 100명 기준 일별 커피집 방문\n  for(i in 1:100) {\n    # 고객 커피집 선택 난수생성\n    user_prob_tbl <- tibble(beta_success, beta_visits) %>%\n      mutate(beta_failure = beta_visits - beta_success) %>% \n      mutate(data = map2_dbl(beta_success+1, beta_failure+1, rbeta, n = 1)) %>% \n      mutate(data = ifelse(is.finite(data), data, 0 )) %>%\n      mutate(shops = c(\"A커피집\", \"B커피집\", \"C커피집\")) %>% \n      select(shops, data) %>% \n      pivot_wider(names_from = shops, values_from = data, values_fill = 0)\n  \n    monthly_coffee <- bind_rows(monthly_coffee, user_prob_tbl)\n  }\n  \n  # daily_coffee\n  \n  # 영업일 100명 기준 방문 실적 업데이트\n  updated_prob <- monthly_coffee %>% \n    mutate(오늘의맛집 = max.col(monthly_coffee)) %>% \n    # mutate(오늘의맛집 = factor(오늘의맛집, \n    #                       labels = c(\"A커피점\", \"B커피점\", \"C커피점\"))) %>% \n    group_by(오늘의맛집) %>% \n    summarise(선정횟수 = n()) %>% \n    mutate(선정확률 = 선정횟수 / sum(선정횟수, na.rm=TRUE)) %>% \n    pull(선정확률)\n  \n  updated_prob\n}\n\nget_monthly_prob(beta_success, beta_visits)\n\n## 12개월 영업 -------------------\n\nfor (i in 1:12) { # 12개월\n  \n  # 매월 커피집 방문 확률 반영\n  updated_prob <- get_monthly_prob(beta_visits, beta_success)\n  \n  # 월별 가중치 변경\n  weights <- round(updated_prob * visits_size, 0)\n\n  # 커피구매 고객수 수정 반영\n  beta_success <- beta_success + rbinom(rep(1, num_shops), size = weights,\n                                        prob = success_prob)\n\n  # 전체 고객 방문고객수 반영\n  beta_visits <- beta_visits + weights\n  \n  # 월별 커피집 방문확률 누적\n  coffee_tbl <- rbind(coffee_tbl, t(matrix(updated_prob)))\n  \n}\n\ncoffee_tbl_rds <- coffee_tbl %>% \n  as_tibble() %>% \n  set_names(c(\"A커피점\", \"B커피점\", \"C커피점\")) %>% \n  mutate(월별 = 1:12) %>% \n  pivot_longer(cols = -월별, names_to = \"커피점\", values_to = \"방문확률\")\n\ncoffee_tbl_rds %>% \n  write_rds(\"data/coffee_tbl_rds.rds\")\n\n\n상기 커피집 방문확률을 월별로 나눠 쭉 지켜보게 되면 다음과 같이 처음에는 A, B 커피집이 우세하지만 시간이 지나면서 고객은 C 커피집 선택이 확대되는 것을 확인할 수 있다.\n\n\n코드 보기\ncoffee_tbl_rds <- \n  read_rds(\"data/coffee_tbl_rds.rds\")\n\ncoffee_tbl_rds %>% \n  ggplot(aes(x = as.factor(월별), y = 방문확률, fill = 커피점)) + \n    geom_col() +\n    labs(x = \"월\",\n         title = \"월별 고객 커피점 방문확률 예측\") +\n    theme_bw()"
+  },
+  {
+    "objectID": "py_ab_testing.html#감마와-베타-함수",
+    "href": "py_ab_testing.html#감마와-베타-함수",
+    "title": "수요곡선",
+    "section": "3.1 감마와 베타 함수",
+    "text": "3.1 감마와 베타 함수\n베타함수는 다음과 같은 \\(\\Gamma\\) 함수로 표현할 수 있다. \\(\\Gamma\\) 함수는 자연수의 계승 또는 팩토리얼(factorial)을 의미하며 수식으로 표현하면 다음과 같다.\n\\[\\Gamma(n) = (n-1)!\\]\n베타함수는 이항분포에 나오는 이항계수를 실수범위로 확장하여 일반화하는 형태로 알려져 있다.\n\\[Beta(\\alpha, \\beta)=\\frac{\\Gamma(\\alpha)\\,\\Gamma(\\beta)}{\\Gamma(\\alpha+\\beta)}\\]"
+  },
+  {
+    "objectID": "py_ab_testing.html#베타-분포-1",
+    "href": "py_ab_testing.html#베타-분포-1",
+    "title": "수요곡선",
+    "section": "3.2 베타 분포",
+    "text": "3.2 베타 분포\n베타분포는 베르누이, 이항, 음이항, 기하 분포의 켤레 사전분포(Conjugate Prior)이면서 0과 1사이 비율과 퍼센트지 무작위 사건을 모형화하는데 유용하다. 예를 들어, 구매/비구매, 전환율 등이 0과 1사이 비율을 갖는 비결정사건으로 대입해볼 수 있다.\n사후 확률(Posterior Probability)이 사전 확률(Prior Probability) 분포와 같은 분포 계열에 속하는 경우 그 사전확률분포를 켤레 사전분포(Conjugate Prior)라고 하고 이 경우 사후확률을 계산하기 쉬운 장점이 크다.\n\\[Beta(\\alpha,\\beta):\\,\\, prob(x|\\alpha,\\beta)=\\frac{\\Gamma(\\alpha+\\beta)}{{\\Gamma(\\alpha)\\,\\Gamma(\\beta)}}x^{\\alpha-1}(1-x)^{\\beta-1}\\\\=\\frac{x^{\\alpha-1}(1-x)^{\\beta-1}}{B(\\alpha,\\beta)}\\]\n베타분포의 평균과 분산은 \\(\\alpha\\)와 \\(\\beta\\) 형태 모수를 사용하여 계산할 수 있다.\n\\[E(x)=\\mu = \\frac{\\alpha}{\\alpha + \\beta}\\]\n\\[V(x)=\\frac{\\alpha\\beta}{(\\alpha+\\beta)^{2}(\\alpha+\\beta+1)}\\]"
+  },
+  {
+    "objectID": "py_ab_testing.html#시각화-1",
+    "href": "py_ab_testing.html#시각화-1",
+    "title": "수요곡선",
+    "section": "3.3 시각화",
+    "text": "3.3 시각화\n예를 들어, \\(\\alpha=2,\\beta=2\\) 형태모수를 갖는 \\(Beta(\\alpha=2,\\beta=2)\\) 함수는 최고차항이 음의부호를 갖는 2차 방정식모양으로 표현할 수 있다. \\(\\alpha,\\beta\\) 형태모수를 달리하여 0 과 1 사이 유연하게 다양한 함수형태를 모형화할 수 있는 것이 보여주고 있다.\n\\[Beta(\\alpha=2,\\beta=2):\\,\\, prob(x|\\alpha,\\beta)=\\frac{\\Gamma(2+2)}{{\\Gamma(2)\\,\\Gamma(2)}}x^{2-1}(1-x)^{2-1}\\\\=\\frac{\\Gamma(4)}{{\\Gamma(2)\\,\\Gamma(2)}}x(1-x)=상수\\times(x-x^2)\\]\nfrom scipy.stats import beta\nimport matplotlib.pyplot as plt\nimport numpy as np\n\nx = np.linspace(0, 1.0, 100)\ny1 = beta.pdf(x, 0.5, 0.5)\ny2 = beta.pdf(x, 2, 2)\ny3 = beta.pdf(x, 2, 5)\ny4 = beta.pdf(x, 5, 1)\n\nplt.subplot(2, 2, 1) \nplt.title('Beta(a:0.5, b:0.5)')\nplt.plot(x, y1, \"r-\")\n\nplt.subplot(2, 2, 2) \nplt.title('Beta(a:2, b:2)')\nplt.plot(x, y2, \"g-\")\n\nplt.subplot(2, 2, 3) \nplt.title('Beta(a:2, b:5)')\nplt.plot(x, y3, \"b--\")\n\nplt.subplot(2, 2, 4) \nplt.title('Beta(a:5, b:1)')\nplt.plot(x, y4, \"b--\")\n\nplt.tight_layout()\nplt.show()"
+  },
+  {
+    "objectID": "py_ab_testing.html#베타분포-alpha-beta",
+    "href": "py_ab_testing.html#베타분포-alpha-beta",
+    "title": "수요곡선",
+    "section": "3.4 베타분포 \\(\\alpha, \\beta\\)",
+    "text": "3.4 베타분포 \\(\\alpha, \\beta\\)\n베타분포 형태모수 \\(\\alpha, \\beta\\)를 달리할 때 분포의 모양을 살펴보자. 추후 베이지안 갱신을 통해 사후 베타분포가 베르누이 분포와 켤레분포로 사용될 경우 \\(\\alpha, \\beta\\) 값을 성공과 실패로 갱신할 땔 분포의 변화를 이해하는데 도움이 될 것이다.\n# 데이터\nx = np.linspace(0, 1.0, 100)\ny11 = beta.pdf(x, 0.01, 0.01)\ny12 = beta.pdf(x, 0.01, 1)\ny13 = beta.pdf(x, 1, 0.01)\ny21 = beta.pdf(x, 1, 1)\ny22 = beta.pdf(x, 1, 2)\ny23 = beta.pdf(x, 1, 3)\ny31 = beta.pdf(x, 2, 1)\ny32 = beta.pdf(x, 3, 1)\ny33 = beta.pdf(x, 4, 1)\ny41 = beta.pdf(x, 4, 2)\ny42 = beta.pdf(x, 4, 3)\ny43 = beta.pdf(x, 4, 4)\n\n# 1번째 행 ===============\nplt.subplot(4, 3, 1) \nplt.title('Beta(a:0, b:0)')\nplt.plot(x, y11, \"r-\")\n\nplt.subplot(4, 3, 2) \nplt.title('Beta(a:0, b:1)')\nplt.plot(x, y12, \"r-\")\n\nplt.subplot(4, 3, 3) \nplt.title('Beta(a:1, b:0)')\nplt.plot(x, y13, \"r-\")\n\n# 2번째 행 ===============\nplt.subplot(4, 3, 4) \nplt.title('Beta(a:1, b:1)')\nplt.plot(x, y21, \"r-\")\n\nplt.subplot(4, 3, 5) \nplt.title('Beta(a:1, b:2)')\nplt.plot(x, y22, \"r-\")\n\nplt.subplot(4, 3, 6) \nplt.title('Beta(a:1, b:3)')\nplt.plot(x, y23, \"r-\")\n\n# 3번째 행 ===============\nplt.subplot(4, 3, 7) \nplt.title('Beta(a:2, b:1)')\nplt.plot(x, y31, \"r-\")\n\nplt.subplot(4, 3, 8) \nplt.title('Beta(a:3, b:1)')\nplt.plot(x, y32, \"r-\")\n\nplt.subplot(4, 3, 9) \nplt.title('Beta(a:4, b:1)')\nplt.plot(x, y33, \"r-\")\n\n# 4번째 행 ===============\nplt.subplot(4, 3, 10) \nplt.title('Beta(a:4, b:2)')\nplt.plot(x, y41, \"r-\")\n\nplt.subplot(4, 3, 11) \nplt.title('Beta(a:4, b:3)')\nplt.plot(x, y42, \"r-\")\n\nplt.subplot(4, 3, 12) \nplt.title('Beta(a:4, b:4)')\nplt.plot(x, y43, \"r-\")\n\nplt.tight_layout()\nplt.show()"
+  },
+  {
+    "objectID": "py_ab_testing.html#구매-혹은-비구매",
+    "href": "py_ab_testing.html#구매-혹은-비구매",
+    "title": "수요곡선",
+    "section": "4.1 구매 혹은 비구매",
+    "text": "4.1 구매 혹은 비구매\n오프라인에서 고객별로 구매 혹은 비구매, 온라인에서는 구독 혹은 비구독, 클릭 혹은 비클릭 등과 같이 고객의 행동을 달리 표현할 수 있다. 이와 같은 구매 혹은 비구매는 성공 혹은 실패를 나타내는 베르누이 시행으로 표현할 수 있다. 여기서 \\(\\theta\\)는 구매확률을 나타낸다.\n\\[X \\sim Bernoulli (\\theta)\\] 확률밀도함수는 다음과 같다. 여기서 \\(\\theta=0,1\\) 성공과 실패값을 갖게 된다.\n\\[p(x|\\theta) = \\theta^x (1-\\theta)^{1-x}\\]"
+  },
+  {
+    "objectID": "py_ab_testing.html#가능도",
+    "href": "py_ab_testing.html#가능도",
+    "title": "수요곡선",
+    "section": "4.2 가능도",
+    "text": "4.2 가능도\n사후확률은 사전확률 곱하기 가능도로 정의된다. 따라서, 사전확률은 \\(Beta(\\alpha, \\beta)\\)로 정의하고 베르누이 가능도 함수를 구해 둘을 곱하게 되면 사후확률을 구할 수 있다. 먼저 가능도는 다음과 같이 계산된다.\n\\[\nL(\\theta;x) = p(\\{x_i\\}|\\theta) = \\prod_{i} p(x_i|\\theta)\\\\ = \\prod_{i} \\theta^{x_i}(1-\\theta)^{1-x_i}\\\\=\\theta^{\\sum_{i}{x_i}}(1-\\theta)^{\\sum_i{(1-x_i )}}\\\\=\\theta^{구매횟수}(1-\\theta)^{비구매횟수}\n\\]"
+  },
+  {
+    "objectID": "py_ab_testing.html#사후확률",
+    "href": "py_ab_testing.html#사후확률",
+    "title": "수요곡선",
+    "section": "4.3 사후확률",
+    "text": "4.3 사후확률\n베르누이분포의 사전확률 켤레분포가 베타분포로 치환하여 둘을 곱하게 되면 사후확률을 구할 수 있다.\n\\[\np(\\theta|z,N) = \\frac{p(z,N|\\theta)p(\\theta)}{p(z,N)} \\approx\nL(\\theta;x) \\times p(\\theta)\n\\]\n사전분포를 베타분포로 두고 베르누이분포의 가능도 함수를 활용하여 사후확률을 구하면 다음과 같이 수식으로 표현할 수 있다.\n\\[\n\\begin{aligned}\np(\\theta \\mid X)\n&\\propto \\theta^{\\alpha + \\sum x_t - 1} (1 - \\theta)^{\\beta + N - \\sum x_t - 1}\n\\\\\n&\\qquad \\qquad \\downarrow\n\\\\\n\\theta \\mid X &\\sim \\text{Beta}\\Big(\\alpha + \\sum_{t=1}^{n} x_t, \\beta + N - \\sum_{t=1}^{n} x_t \\Big).\n\\end{aligned}\n\\]"
+  },
+  {
+    "objectID": "py_ab_testing.html#사전분포",
+    "href": "py_ab_testing.html#사전분포",
+    "title": "수요곡선",
+    "section": "5.1 사전분포",
+    "text": "5.1 사전분포\n양극단이 적고 중앙이 두툼한 형태 정규분포 비슷한 사전분포를 가정한다.\nplt.rcParams['font.family'] = 'NanumGothic'\nx = np.linspace(0, 1.0, 100)\nprior_y = beta.pdf(x, 2, 2)\n\nplt.subplot(2, 2, 4) \nplt.title('사전분포 - 형태모수(a:2, b:2)를 갖는 베타분포')\nplt.plot(x, prior_y, \"b\")\n\nplt.tight_layout()\nplt.show()"
+  },
+  {
+    "objectID": "py_ab_testing.html#실제구매-데이터",
+    "href": "py_ab_testing.html#실제구매-데이터",
+    "title": "수요곡선",
+    "section": "5.2 실제구매 데이터",
+    "text": "5.2 실제구매 데이터\n고객 \\(N\\) 명중 \\(n\\) 명이 구매를 했다고 가정하자. 예를 들어, 광고 캠페인에 \\(N=10\\) 명에게 문자를 돌려 \\(n=6\\)이 구매를 한 경우 가능도를 아래와 같이 베타분포로 표현할 수 있다.\nimport math\n\nlikelihoods = []\n\nprob_space = np.linspace(0, 1.0, 100)\n\nfor i in range(0, len(prob_space)):\n    likelihood = beta.pdf(prob_space[i], 10, 6)\n    likelihoods.append(likelihood)\n    # print(likelihood)\n\nplt.plot(prob_space, likelihoods)\nplt.title('가능도 함수 - 형태모수(\\u03b1=6, \\u03b2=4)를 갖는 베타분포')\nplt.show()\n\nprob_space[np.argmax(likelihoods)]"
+  },
+  {
+    "objectID": "py_ab_testing.html#사후확률-1",
+    "href": "py_ab_testing.html#사후확률-1",
+    "title": "수요곡선",
+    "section": "5.3 사후확률",
+    "text": "5.3 사후확률\n베타분포를 사전확률로 갖고 베르누이/이항분포를 결합한 사후확률은 갱신된 형태모수 \\(\\alpha, \\beta\\)를 갖는 베타분포입니다. 따라서,\n\\[사전분포 \\sim Beta(2,2) \\qquad \\rightarrow \\qquad 사후분포 \\sim Beta(2+6, 2+10-6)\\]\nposteriors = []\n\nprob_space = np.linspace(0, 1.0, 100)\n\nfor i in range(0, len(prob_space)):\n    posterior = beta.pdf(prob_space[i], 8, 6)\n    posteriors.append(posterior)\n    # print(posterior)\n\nplt.plot(prob_space, posteriors)\nplt.title('사후분포  - 형태모수(\\u03b1=8, \\u03b2=6)를 갖는 베타분포')\nplt.show()\n\nprob_space[np.argmax(posteriors)]"
+  },
+  {
+    "objectID": "py_ab_testing.html#결합",
+    "href": "py_ab_testing.html#결합",
+    "title": "수요곡선",
+    "section": "5.4 결합",
+    "text": "5.4 결합\n앞서 각기 달리 시각화한 것을 사전, 가능도, 사후 분포를 함께 살펴보자. 0.5 전후 구매확률이 있다고 사전분포를 가정한 후 실제 데이터를 통해 수집된 내용은 10명 중 6명이 구매를 한 것이 확인되었다. 이를 바탕으로 사전분포와 가능도를 결합하여 사후 구매확률을 자동으로 갱신할 수 있다.\n\n나눠보기합쳐보기\n\n\n\n# 사전분포 ===============\nplt.subplot(3, 1, 1)\nx = np.linspace(0, 1.0, 100)\ny_prior = beta.pdf(x, 2, 2)\n\nplt.plot(x, y_prior, \"g\")\nplt.title('Beta(\\u03b1=2, \\u03b2=2)')\n\n# 가능도 분포 ===============\nplt.subplot(3, 1, 2) \nplt.plot(prob_space, likelihoods, \"b\")\nplt.title('\"가능도 함수 - 형태모수(\\u03b1=6, \\u03b2=4)를 갖는 베타분포\",')\n\n# 사후분포 ===============\nplt.subplot(3, 1, 3) \nplt.plot(prob_space, posteriors, \"r\")\nplt.title('사후분포  - 형태모수(\\u03b1=8, \\u03b2=6)를 갖는 베타분포')\n\nplt.tight_layout()\nplt.show()\n\n\n\nplt.title('사후분포  - 형태모수(\\u03b1=8, \\u03b2=6)를 갖는 베타분포')\n# plt.subtitle('사전, 가능도, 사후 분포')\n\nplt.plot(x, y_prior, \"g\")\nplt.plot(prob_space, likelihoods, \"b\")\nplt.plot(prob_space, posteriors, \"r\")\n\nplt.legend([\"사전분포\", \"가능도\", \"사후분포\"], loc=1)\nplt.tight_layout()\nplt.show()\n\n\n\n{r setup, include=FALSE} knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE,                       comment=\"\", digits = 3, tidy = FALSE, prompt = FALSE, fig.align = 'center')"
+  },
+  {
+    "objectID": "py_ab_testing.html#선형-회귀-모형",
+    "href": "py_ab_testing.html#선형-회귀-모형",
+    "title": "수요곡선",
+    "section": "7.1 선형 회귀 모형",
+    "text": "7.1 선형 회귀 모형\n수요함수(\\(d(P)\\), price-response function)를 선형으로 가정하고 Price-Response 함수를 추정해보자. 가격과 수요함수를 선형회귀식을 통해 추정할 경우 모수가 3개라서 관측점이 2개 이상이면 선형회귀방정식을 도출해낼 수 있다. 선형회귀식이 가격별 수요물량을 제대로 모형으로 일반화할 수 있는지 시각화를 통해 검증하는 방식이 혹시라도 생길 수 있는 전산 오류 혹은 이상점에 따른 불확실성 제거를 위해서도 꼭 필요한 과정이다.\n``` {r nls} ## 비선형 수요모형 ———\nlm_mod <- lm(y ~ x, data = segment_tbl)\nlm_coef <- broom::tidy(lm_mod) %>% pull(estimate)\nlm_fn <- function(x) lm_coef[1] + lm_coef[2] * x"
+  },
+  {
+    "objectID": "py_ab_testing.html#시각화-3",
+    "href": "py_ab_testing.html#시각화-3",
+    "title": "수요곡선",
+    "section": "7.2 시각화 —————",
+    "text": "7.2 시각화 —————\nsegment_tbl %>% ggplot(aes(x = x, y = y)) + geom_point() + geom_function(fun = lm_fn, color = “blue”) + labs(x = “수요물량”, y = “가격”, title = “가격과 수요물량 관계”) + geom_hline(yintercept = 5, linetype = 2, color = “gray70”) + expand_limits(x =0, y =0) + theme_bw(base_family = “NanumGothic”) + annotate(“text”, x = 20, y = 6, label = “변동비($5)”, size = 3) + scale_x_continuous(labels = scales::comma)\n\n\n## 비선형 회귀모형\n\n수요함수($d(P)$, price-response function)를 선형회귀식을 가정한 경우 변동율이 일정하다고 가정했지만 경우에 따라서 가격에 민감하게 반응하는 탄력성을 갖는 경우 특정 가격대에서는 급격한 수요변화를 일정 가격대를 넘게 되면 완만한 수요변화를 가정하는 것도 합리적이다. 이와 같은 가격대별로 비선형 가격탄력성을 갖는 관계를 비선형 회귀곡선으로 적합시켜 후속 업무에 활용할 수 있다. \n\n\n$$d(P) = e^{\\alpha + \\beta \\times log(P)}$$\n\n``` {r nls-fit}\n## 비선형 수요모형 ---------\nget_coef <- function() {\n  x <- segment_tbl$x\n  y <- segment_tbl$y\n  \n  demand_fit <- nls(y ~ exp(a + b * log(x)), start=list(a=0, b=0))\n  \n  nls_coef <- broom::tidy(demand_fit) %>% \n    pull(estimate)\n  return(list(a = nls_coef[1],\n              b = nls_coef[2]))\n}\n\nnls_coef <- get_coef()\n\nnls_fn <- function(x) exp(nls_coef$a + nls_coef$b * log(x))\n\n## 시각화 ---------------\nsegment_tbl %>% \n  ggplot(aes(x = x, y = y)) +\n    geom_point() +\n    geom_function(fun = nls_fn, color = \"blue\") +\n    labs(x = \"수요물량\",\n         y = \"가격\",\n         title = \"가격과 수요물량 관계\") +\n     geom_hline(yintercept = 5, linetype = 2, color = \"gray70\") +\n     expand_limits(x =0, y =0) +\n     theme_bw(base_family = \"NanumGothic\") +\n     annotate(\"text\", x = 20, y = 6, label = \"변동비($5)\", size = 3)  +\n     scale_x_continuous(labels = scales::comma)"
+  }
+]

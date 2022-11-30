@@ -1,0 +1,284 @@
+---
+title: "가격변동과 최적화"
+bibliography: pricing.bib
+filters:
+   - lightbox
+lightbox: auto
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE,
+                      comment="", digits = 3, tidy = FALSE, prompt = FALSE, fig.align = 'center')
+```
+
+일물일가 원칙을 폐기하고 장소와 시간 제품과 서비스에 따라 달리 고객별로 가격책정을 달리한다는 정책을 수립했다면, 가격을 올리거나 내릴 때 어떤 영향을 미치게 되는지 이해하는 것이 선행하여 필요하다. 먼저 가격 변화에 따른 손익분기점의 변화를 살펴보자.
+
+# 가격 변화 손익분기점
+
+[Understanding The Financial Implications Of Alternative Price Levels [@nagle2017strategy]]{.aside}
+
+[**공헌이익(CM, Contribution Margin):** 판매수량 변화에 따라 변하는 총수익과 총변동비의 차이로 매출액 중에서 고정비를 회수하고 이익을 획득하는데 공헌하는 금액. 자세한 사항은 [나무위키 참조](https://namu.wiki/w/공헌이익)]{.aside}
+
+## 가격 인하
+
+가격을 인하하게 되면 판매량이 보통 증가하게 된다. 하지만 가격인하에 따라 공헌이익($P-C$)은 줄게 되어 이익이 줄게 되고 판매량 증가에 따라 변동비용이 증가하게 되어 역시 이익이 줄게 된다. 따라서 이와 같은 두 이익 감소를 상쇄하고 이익을 남길 수 있는 손익분기점 판매량을 계산해보자.
+
+![](images/bep_price_cut.jpg)
+
+
+- 단위 가격($P$): 10
+- 가격인하($\Delta P$): - 0.5
+- 단위 변동비($VC$): 5.5
+- (단위) 공헌이익(MC, $P-VC$): (10-5.5) = 4.5
+- 판매량($Q$): 4,000
+
+$$\frac{\Delta Q}{Q} = \frac{- \Delta P}{CM + \Delta P} = \frac{- \Delta P}{(P-VC) + \Delta P}$$
+
+```{r}
+price = 10
+vc = 5.5
+delta_price = - 0.5
+quantity = 4000
+
+delta_quantity = -delta_price / ((10-5.5) + delta_price)
+delta_quantity
+```
+
+따라서 `r scales::percent(delta_quantity)` 만큼 판매량이 늘어야 손익분기점을 넘길 수 있다. 즉,
+
+```{r}
+bep_quantity <- delta_quantity * quantity
+```
+
+`r scales::comma(bep_quantity)` 이상 판매량이 증가해야 가격인하에 따른 이익을 볼 수 있다.
+
+## 가격인상
+
+가격을 인상하게 되면 판매량이 보통 감소하게 된다. 하지만 가격인상에 따라 공헌이익($P-C$)은 늘게되어 판매 단위당 이익은 늘게 되지만, 판매량 감소에 따라 변동비용이 감소하게 되어 역시 이익도 늘게 된다. 따라서 이와 같은 판매량 감소에도 불그하고 이익을 남길 수 있는 최소 손익분기점 판매량을 계산해보자.
+
+![](images/bep_price_increase.jpg)
+
+
+- 단위 가격($P$): 10
+- 가격인하($\Delta P$): + 1
+- 단위 변동비($VC$): 5.5
+- (단위) 공헌이익(MC, $P-VC$): (11-5.5) = 5.5
+- 판매량($Q$): 4,000
+
+$$\frac{\Delta Q}{Q} = \frac{- \Delta P}{CM + \Delta P} = \frac{- \Delta P}{(P-VC) + \Delta P}$$
+
+```{r}
+price = 11
+vc = 5.5
+delta_price = +1
+quantity = 4000
+
+delta_quantity = -delta_price / ((11-5.5) + delta_price)
+delta_quantity
+```
+
+따라서 `r scales::percent(delta_quantity)` 만큼 판매량이 줄어야 손익분기점을 넘길 수 있다. 즉,
+
+```{r}
+bep_quantity <- delta_quantity * quantity
+```
+
+`r scales::comma(bep_quantity)` 이상 판매량이 감소해야 가격인상에 따른 이익을 볼 수 있다.
+
+
+# (수식) 최적 가격도출
+
+[Pricing Optimization: How to find the price that maximizes your profit, [출처](https://insightr.wordpress.com/2017/08/27/pricing-optimization-how-to-find-the-price-that-maximizes-your-profit/)]{.aside}
+
+최적가격을 함수의 형태로 표현해보자. 먼저, 가격변화에 따른 수요물량 변화를 1차 선형식으로 가정하여 표현해보자. $Q$는 수요물량, $p$는 가격이다.
+
+$$Q(p) = \alpha + \beta \times p$$
+
+매출은 가격에 수요물량을 곱하면 되기 때문에 수식으로 다음과 같이 표현한다.
+
+$$p \times Q(p) = p \times \alpha + p \times \beta \times p$$
+
+$R$은 매출로 보기 좋게 정리하면 다음과 같다.
+
+$$R(p) = Q(p) \times p =  \alpha p +  \beta \times p^2$$
+이익($S(p)$)은 가격에서 비용을 제하고 수요물량을 곱하면 구할 수 있다.
+
+$$S(p) = Q(p) \times (p-c) =  \beta \times p^2 -\beta p c + \alpha(p-c)$$
+
+이제 미분을 하여 0이 되는 값이 최대가 되기 때문에 매출이 최대가 되는 가격과 이익이 최대가 되는 가격을 수식으로 도출해보자.
+
+먼저 매출이 최대가 되는 최적 가격 ($p^*$)을 구해보자.
+
+$$R(p) = Q(p) \times p =  \alpha p +  \beta \times p^2 \\
+\frac{\partial{R(p)}}{\partial{p}} = \alpha + 2 \beta p = 0 \\
+p^* = \frac{-\alpha}{2\beta}$$
+
+다음으로 순이익이 최대가 되는 최적 가격 ($p^*$)을 구해보자.
+
+$$S(p) = Q(p) \times (p-c) =  \beta \times p^2 -\beta p c + \alpha(p-c)$$
+$$\frac{\partial{S(p)}}{\partial{p}} = 2 \beta p - \beta c +\alpha = 0$$
+$$p^* = \frac{\beta c -\alpha}{2\beta}$$
+
+
+수식을 통해 도출된 매출을 극대화 시키는 매출가격과 순익을 극대화하는 순익가격 그리고 각 가격에 해당되는 물량을 `ggplot`으로 시각화한다.
+
+
+```{r}
+library(tidyverse)
+library(ggrepel)
+
+segment_tbl <- tibble( x = c(50, 
+                             50+150, 
+                             50+150+350, 
+                             50+150+350+250,
+                             50+150+350+250+200),
+                       y = c(20, 15, 10, 8, 6))
+
+
+## Price Response 곡선 ------------
+model_tbl <- segment_tbl %>% 
+  rename(물량 = x, 가격 = y)
+
+price_response_lm <- lm(물량 ~ 가격, data = model_tbl)
+alpha <- coef(price_response_lm)[1] %>% as.numeric # 1324.379 
+beta  <- coef(price_response_lm)[2] %>% as.numeric #-68.1677
+
+## 가격 변환에 따른 매출 순익 함수
+calculate_revenue <- function(p) alpha * p + beta * p^2
+calculate_profit  <- function(p) beta * p^2 - beta * p * 5 + alpha*(p-5)
+
+## 최적 가격 - 매출, 순익
+revenue_price <- - alpha / (2*beta)
+profit_price  <- (beta * 5 - alpha) / (2*beta)
+
+## 시각화 -----
+
+ggplot() +
+  xlim(0, 25)+
+  geom_function(fun = calculate_revenue, color = "black") +
+  geom_function(fun = calculate_profit, color = "blue") +
+  geom_point(aes( x = revenue_price, 
+                  y = calculate_revenue(revenue_price)), color = "black") +
+  geom_point(aes( x = profit_price,  
+                  y = calculate_profit(profit_price)), color = "red") +
+  theme_bw(base_family = "NanumGothic") +
+  # annotate("text", x = 20, y = 6, label = "변동비($5)", size = 3)  +
+  geom_text_repel(aes(x = revenue_price, 
+                      y = calculate_revenue(revenue_price), label = glue::glue("매출가격:{round(revenue_price,2)}\n물량:{scales::comma(calculate_revenue(revenue_price))}"))) +
+  geom_text_repel(aes(x = profit_price, 
+                      y = calculate_profit(profit_price), label = glue::glue("순익가격:{round(profit_price,2)}\n물량:{scales::comma(calculate_profit(profit_price))}"))) +
+  labs(x = "가격",
+       y = "수요물량",
+       title = "매출, 순익 고려한 최적 가격결절")
+
+```
+
+# 가격 최적화
+
+최적 가격결정을 위해서 몇가지 가정을 할 필요가 있고 가격 변동에 따른 수요함수를 추정할 필요도 있다. 앞선 수요함수 추정 기법을 통해서 수요함수를 올바르게 추정했다고 가정하자. 가격수요 실증 데이터를 통해 수요함수를 다음과 같은 선형회귀식으로 추정했다.
+
+[출처: [Business Analytics with R - DRAFT](https://bookdown.org/jeffreytmonroe/business_analytics_with_r7/marketing.html) Optimal Product Mix]{.aside}
+
+- 수요함수(가격수요 회귀식): $d(P) = 209000 - 130 \times p$
+- 총 공헌이익: $m(P) = d(P) \times (P-C)$
+  - 단위가격, 줄여서 단가: $P$
+  - 단위비용($C$): 675
+  - 단위이익: $P-C$
+
+상기 최적화 문제는 미분을 한 후에 0 이 되는 $P$ 값을 계산하면 된다. 따라서,
+
+$m'(P) = d'(P) \times (P - C) + d(P) = 0$
+
+식을 정리하면 이익이 극대화 되는 $P^*$ 는 다음과 같다.
+
+$d(P^*) = - d'(P^*) \times (P^* - C)$
+
+
+```{r}
+library(tidyverse)
+
+demand_fn <- function(p) {209000 - 130 * p }
+
+demand_tbl <- tibble(price = seq(0, 2000, by = 10))
+
+ggplot(demand_tbl, aes(x = price)) + 
+  stat_function(fun = demand_fn) +
+  geom_hline(yintercept = 0, linetype = 2) +
+  theme_bw(base_family = "NanumGothic") +
+  labs(x = "가격",
+       y = "수량") +
+  scale_x_continuous(labels = scales::comma) +
+  scale_y_continuous(labels = scales::comma)
+```
+
+$d(P^*) = - d'(P^*) \times (P^* - C)$ 식에 상기 같을 집어넣어 정리하면 다음과 같이 최적 가격을 구할 수 있다.
+
+$$209000-130 \times P = 130 \times (P-675)$$
+
+
+$$296750 = 260 \times P $$
+$$P^* = 1,141 $$
+
+함수를 정의하고 `uniroot()` 함수로 최적가격을 구할 수 있다.
+
+```{r}
+f <- function(p)  ((130+130)*(p)-((130*675)+209000))
+optimal_price <- uniroot(f, lower=0, upper=10000)$root
+```
+
+시각화하면 다음과 같다.
+
+```{r}
+ggplot(demand_tbl, aes(x = price)) + 
+  stat_function(fun = demand_fn) +
+  geom_hline(yintercept = 0, linetype = 1, color = "gray50") +
+  theme_bw(base_family = "NanumGothic") +
+  geom_vline(xintercept = optimal_price, linetype = 2) +
+  labs(title = "이익을 극대화하는 최적가격",
+       x = "가격",
+       y = "수량") +
+  scale_x_continuous(labels = scales::comma) +
+  scale_y_continuous(labels = scales::comma) +
+  annotate("text", x = 1350, y = 63000, 
+           label = glue::glue("P* = {scales::comma(optimal_price)}"), 
+           size = 5, color = "red")
+```
+
+## 이익 극대화
+
+가격을 0 에서 1,500 사이 변동을 통해 총 이익이 극대화되는 가격을 시각적으로 확인해보자.
+
+```{r}
+price <- seq(500, 1500, 1)
+sales <- 209000 - 130 * price
+
+profit_tbl <- tibble(price = price,
+                     sales = sales) %>% 
+  mutate(revenue = price * sales) %>% 
+  mutate(profit = sales * (price - 675) )
+
+total_contribution <- profit_tbl %>% 
+  filter(profit == max(profit)) %>% 
+  pull(profit)
+
+profit_tbl %>% 
+  ggplot(aes(x = price, y = profit)) +
+    geom_line() +
+    geom_vline(xintercept = optimal_price) +
+    scale_x_continuous(labels = scales::comma) +
+    scale_y_continuous(labels = scales::comma) +
+    annotate("text", x = 1300, y = 27111000, 
+             label = glue::glue("P* = {scales::comma(optimal_price)}\n이익: {scales::comma(total_contribution)}"), 
+             size = 5, color = "red")  +
+    geom_point(aes(x= optimal_price, y = total_contribution), size = 3, color = "blue") +
+    theme_bw(base_family = "NanumGothic") +
+  labs(title = "총 공헌이익 극대화 최적가격",
+       x = "가격",
+       y = "수량") 
+```
+
+
+
+

@@ -1,0 +1,1309 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.2.237">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Dynamic Pricing - A/B 테스팅</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1.6em;
+  vertical-align: middle;
+}
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<script src="site_libs/quarto-html/quarto.js"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script src="site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
+<link href="site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
+<link href="site_libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 20,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit"
+  }
+}</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script>
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<link rel="stylesheet" href="styles.css">
+</head>
+
+<body class="nav-fixed">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg navbar-dark ">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container">
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">Dynamic Pricing</span>
+    </a>
+  </div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="./index.html">
+ <span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./background.html">
+ <span class="menu-text">Part 0</span></a>
+  </li>  
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-part-i---r" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Part I - R</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-part-i---r">    
+        <li>
+    <a class="dropdown-item" href="./pricing.html">
+ <span class="dropdown-text">가격결정 중요성</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./demand_curve.html">
+ <span class="dropdown-text">(통계)수요곡선</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./price_opt.html">
+ <span class="dropdown-text">가격변동과 최적화</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./cvp.html">
+ <span class="dropdown-text">[외전] CVP 분석</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-part-ii---r" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Part II - R</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-part-ii---r">    
+        <li>
+    <a class="dropdown-item" href="./ab_testing.html">
+ <span class="dropdown-text">A/B Testing</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./bayesian.html">
+ <span class="dropdown-text">(베이지안) 통계</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./thompson.html">
+ <span class="dropdown-text">톰슨 샘플링</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-part-i---py" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Part I - Py</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-part-i---py">    
+        <li>
+    <a class="dropdown-item" href="./pricing.html">
+ <span class="dropdown-text">가격결정 중요성</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./py_demand_curve.html">
+ <span class="dropdown-text">(통계)수요곡선</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-part-ii---py" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Part II - Py</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-part-ii---py">    
+        <li>
+    <a class="dropdown-item" href="./py_ab_testing.html">
+ <span class="dropdown-text">A/B Testing</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./py_bayesian.html">
+ <span class="dropdown-text">(베이지안) 통계</span></a>
+  </li>  
+    </ul>
+  </li>
+</ul>
+              <div id="quarto-search" class="" title="Search"></div>
+          </div> <!-- /navcollapse -->
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">목차</h2>
+   
+  <ul>
+  <li><a href="#가격을-찾아가는-과정" id="toc-가격을-찾아가는-과정" class="nav-link active" data-scroll-target="#가격을-찾아가는-과정"><span class="toc-section-number">1</span>  가격을 찾아가는 과정</a></li>
+  <li><a href="#ab-테스팅" id="toc-ab-테스팅" class="nav-link" data-scroll-target="#ab-테스팅"><span class="toc-section-number">2</span>  A/B 테스팅</a>
+  <ul class="collapse">
+  <li><a href="#문제-정의-및-목표설정" id="toc-문제-정의-및-목표설정" class="nav-link" data-scroll-target="#문제-정의-및-목표설정"><span class="toc-section-number">2.1</span>  문제 정의 및 목표설정</a></li>
+  <li><a href="#기술-통계" id="toc-기술-통계" class="nav-link" data-scroll-target="#기술-통계"><span class="toc-section-number">2.2</span>  기술 통계</a></li>
+  <li><a href="#통계-검정" id="toc-통계-검정" class="nav-link" data-scroll-target="#통계-검정"><span class="toc-section-number">2.3</span>  통계 검정</a></li>
+  </ul></li>
+  <li><a href="#베타-분포" id="toc-베타-분포" class="nav-link" data-scroll-target="#베타-분포"><span class="toc-section-number">3</span>  베타 분포</a>
+  <ul class="collapse">
+  <li><a href="#감마와-베타-함수" id="toc-감마와-베타-함수" class="nav-link" data-scroll-target="#감마와-베타-함수"><span class="toc-section-number">3.1</span>  감마와 베타 함수</a></li>
+  <li><a href="#베타-분포-1" id="toc-베타-분포-1" class="nav-link" data-scroll-target="#베타-분포-1"><span class="toc-section-number">3.2</span>  베타 분포</a></li>
+  <li><a href="#시각화-1" id="toc-시각화-1" class="nav-link" data-scroll-target="#시각화-1"><span class="toc-section-number">3.3</span>  시각화</a></li>
+  <li><a href="#베타분포-alpha-beta" id="toc-베타분포-alpha-beta" class="nav-link" data-scroll-target="#베타분포-alpha-beta"><span class="toc-section-number">3.4</span>  베타분포 <span class="math inline">\(\alpha, \beta\)</span></a></li>
+  </ul></li>
+  <li><a href="#구매-사후확률" id="toc-구매-사후확률" class="nav-link" data-scroll-target="#구매-사후확률"><span class="toc-section-number">4</span>  구매 사후확률</a>
+  <ul class="collapse">
+  <li><a href="#구매-혹은-비구매" id="toc-구매-혹은-비구매" class="nav-link" data-scroll-target="#구매-혹은-비구매"><span class="toc-section-number">4.1</span>  구매 혹은 비구매</a></li>
+  <li><a href="#가능도" id="toc-가능도" class="nav-link" data-scroll-target="#가능도"><span class="toc-section-number">4.2</span>  가능도</a></li>
+  <li><a href="#사후확률" id="toc-사후확률" class="nav-link" data-scroll-target="#사후확률"><span class="toc-section-number">4.3</span>  사후확률</a></li>
+  </ul></li>
+  <li><a href="#시각화-2" id="toc-시각화-2" class="nav-link" data-scroll-target="#시각화-2"><span class="toc-section-number">5</span>  시각화</a>
+  <ul class="collapse">
+  <li><a href="#사전분포" id="toc-사전분포" class="nav-link" data-scroll-target="#사전분포"><span class="toc-section-number">5.1</span>  사전분포</a></li>
+  <li><a href="#실제구매-데이터" id="toc-실제구매-데이터" class="nav-link" data-scroll-target="#실제구매-데이터"><span class="toc-section-number">5.2</span>  실제구매 데이터</a></li>
+  <li><a href="#사후확률-1" id="toc-사후확률-1" class="nav-link" data-scroll-target="#사후확률-1"><span class="toc-section-number">5.3</span>  사후확률</a></li>
+  <li><a href="#결합" id="toc-결합" class="nav-link" data-scroll-target="#결합"><span class="toc-section-number">5.4</span>  결합</a></li>
+  </ul></li>
+  <li><a href="#들어가며" id="toc-들어가며" class="nav-link" data-scroll-target="#들어가며"><span class="toc-section-number">6</span>  들어가며</a></li>
+  <li><a href="#수요곡선-추정" id="toc-수요곡선-추정" class="nav-link" data-scroll-target="#수요곡선-추정"><span class="toc-section-number">7</span>  수요곡선 추정</a>
+  <ul class="collapse">
+  <li><a href="#선형-회귀-모형" id="toc-선형-회귀-모형" class="nav-link" data-scroll-target="#선형-회귀-모형"><span class="toc-section-number">7.1</span>  선형 회귀 모형</a></li>
+  <li><a href="#시각화-3" id="toc-시각화-3" class="nav-link" data-scroll-target="#시각화-3"><span class="toc-section-number">7.2</span>  시각화 —————</a></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content page-columns page-full" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<div class="quarto-title-block"><div><h1 class="title">수요곡선</h1><button type="button" class="btn code-tools-button dropdown-toggle" id="quarto-code-tools-menu" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi"></i> Code</button><ul class="dropdown-menu dropdown-menu-end" aria-labelelledby="quarto-code-tools-menu"><li><a id="quarto-show-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Show All Code</a></li><li><a id="quarto-hide-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Hide All Code</a></li><li><hr class="dropdown-divider"></li><li><a id="quarto-view-source" class="dropdown-item" href="javascript:void(0)" role="button">View Source</a></li></ul></div></div>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+</header>
+
+<section id="가격을-찾아가는-과정" class="level1" data-number="1">
+<h1 data-number="1"><span class="header-section-number">1</span> 가격을 찾아가는 과정</h1>
+<p>가격을 인상하거나 인하하게 되면 경제상황과 시장경쟁강도에 따라 수요가 탄력적으로 변화하게 된다. 다른 조건을 다 동일하게 두고 가격을 올리는 것이 유리한지 가격을 내리는 것이 유리한지 가격을 변동하게 되면 얼마의 가격변동폭을 두여야하는지 근거가 있다면 바로 실행하면 되고 만약 가격 변동에 따른 유불리를 판단할 수 없다면 실험을 설계하여 사업목표 달성을 위해 나아가는 것도 한 방법이다.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="images/ab-testing.png" class="lightbox" data-gallery="quarto-lightbox-gallery-1"><img src="images/ab-testing.png" class="img-fluid figure-img"></a></p>
+</figure>
+</div>
+<p>실험을 여러가지 방식으로 설계를 할 수 있지만 가장 큰 대원칙은 다른 조건은 모두 동일하게 하고 단 하나의 요인만 변동을 시키고 실험의 효과를 정확히 관측하기 위해 모집단에서 표본을 동일하게 <strong>실험군</strong>(가격을 인상 혹은 인하)과 <strong>대조군</strong>(가격을 기존 가격 그대로 유지)으로 나눠 구매여부 혹은 클릭여부 등 실험목표에 유의적인 차이가 있는지를 데이터를 통해 확인하는 것이다.</p>
+<p>여기서 목표를 새로운 가격대를 탐색하는 것이 목적인지 예를 들어 시장에 전혀 나온적인 없는 신제품의 경우 가격 탐색을 목적으로 A/B 테스팅을 기획할 수 도 있다. 목표를 설정하고 문제를 해결할 것인지 새로운 기회를 찾을 것인지 정한 후에, 영역을 특정한 후에 가설을 세워 실제 데이터를 통해 검증하고 마지막으로 결과를 도출한다. 이 모든 과정에 데이터는 필수적으로 동반된다.</p>
+<div class="callout-note callout callout-style-default callout-captioned">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-caption-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>A/B 테스팅 작업흐름</strong></p>
+<p>목표설정 → 영역 설정 (문제/기회) → 가설 설정 → (가설) 검정 → 의사결정</p>
+</div>
+</div>
+</section>
+<section id="ab-테스팅" class="level1" data-number="2">
+<h1 data-number="2"><span class="header-section-number">2</span> A/B 테스팅</h1>
+<div class="cell" data-hide="true" data-execution_count="1">
+<div class="cell-output cell-output-display" data-execution_count="16">
+
+<div>
+
+<table class="dataframe table table-sm table-striped">
+  <thead>
+    <tr>
+      <th></th>
+      <th>고객</th>
+      <th>AB테스팅</th>
+      <th>구매여부</th>
+      <th>연령</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>1</td>
+      <td>변경후</td>
+      <td>0</td>
+      <td>38</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>2</td>
+      <td>변경전</td>
+      <td>0</td>
+      <td>33</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>3</td>
+      <td>변경전</td>
+      <td>0</td>
+      <td>30</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>4</td>
+      <td>변경후</td>
+      <td>1</td>
+      <td>39</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>5</td>
+      <td>변경후</td>
+      <td>0</td>
+      <td>26</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+</div>
+</div>
+<section id="문제-정의-및-목표설정" class="level2" data-number="2.1">
+<h2 data-number="2.1" class="anchored" data-anchor-id="문제-정의-및-목표설정"><span class="header-section-number">2.1</span> 문제 정의 및 목표설정</h2>
+<p>기존 제품의 가격을 인하하게 되면 가격인하로 인해 매출도 늘고 경쟁업체에 고객 이탈도 막을 수 있다는 내부 검토를 거쳐 문제를 정의하고 목표를 설정한다.</p>
+</section>
+<section id="기술-통계" class="level2" data-number="2.2">
+<h2 data-number="2.2" class="anchored" data-anchor-id="기술-통계"><span class="header-section-number">2.2</span> 기술 통계</h2>
+<p>기존 가격을 인한한 후, 특정 기간동안 구매자 변화를 기록하여 분석한다. 기존 1만인 제품을 1천원 내려 구매량의 변화를 살펴보자.</p>
+<ul>
+<li>변경전: 1만원</li>
+<li>변경후: 9천원</li>
+</ul>
+<div class="panel-tabset">
+<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-1-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-1" role="tab" aria-controls="tabset-1-1" aria-selected="true">요약표</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-1-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-2" role="tab" aria-controls="tabset-1-2" aria-selected="false">시각화</a></li></ul>
+<div class="tab-content">
+<div id="tabset-1-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-1-1-tab">
+<div class="cell" data-execution_count="2">
+<details>
+<summary>코드 보기</summary>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>ab_testing_long <span class="op">=</span> ab_testing.groupby([<span class="st">'AB테스팅'</span>, <span class="st">'구매여부'</span>], as_index<span class="op">=</span><span class="va">False</span>)[<span class="st">'고객'</span>].count()</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>ab_testing_wide <span class="op">=</span> pd.pivot(ab_testing_long, index <span class="op">=</span> <span class="st">'구매여부'</span>, columns <span class="op">=</span> <span class="st">'AB테스팅'</span>, values<span class="op">=</span><span class="st">'고객'</span>)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>ab_testing_wide[<span class="st">'합계'</span>] <span class="op">=</span>  ab_testing_wide[<span class="st">'변경전'</span>] <span class="op">+</span> ab_testing_wide[<span class="st">'변경후'</span>]</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>ab_testing_wide  </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-display" data-execution_count="17">
+
+<div>
+
+<table class="dataframe table table-sm table-striped">
+  <thead>
+    <tr>
+      <th>AB테스팅</th>
+      <th>변경전</th>
+      <th>변경후</th>
+      <th>합계</th>
+    </tr>
+    <tr>
+      <th>구매여부</th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>9</td>
+      <td>8</td>
+      <td>17</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>1</td>
+      <td>2</td>
+      <td>3</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+<div id="tabset-1-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-2-tab">
+<div class="cell" data-execution_count="3">
+<details>
+<summary>코드 보기</summary>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>plt.rcParams[<span class="st">'font.family'</span>] <span class="op">=</span> <span class="st">'NanumGothic'</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>x_val <span class="op">=</span> ab_testing_wide.index</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>before_val <span class="op">=</span> ab_testing_wide[<span class="st">'변경전'</span>]</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>after_val  <span class="op">=</span> ab_testing_wide[<span class="st">'변경후'</span>]</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>width <span class="op">=</span> <span class="fl">0.30</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>plt.bar(x_val<span class="op">-</span><span class="fl">0.2</span>, before_val, width)</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>plt.bar(x_val<span class="op">+</span><span class="fl">0.2</span>, after_val, width)</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>plt.xticks(x_val, [<span class="st">'0'</span>, <span class="st">'1'</span>])</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">'웹사이트 가격 변경전후 A/B 테스팅'</span>)</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">'구매여부'</span>)</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">'구매구객수'</span>)</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="py_ab_testing_files/figure-html/cell-4-output-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-2"><img src="py_ab_testing_files/figure-html/cell-4-output-1.png" width="576" height="450" class="figure-img"></a></p>
+</figure>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section id="통계-검정" class="level2" data-number="2.3">
+<h2 data-number="2.3" class="anchored" data-anchor-id="통계-검정"><span class="header-section-number">2.3</span> 통계 검정</h2>
+<p>상기 기술통계 및 시각화를 통해 가격변경 후 구매율이 높아진 것은 사실이다. 하지만, 이와 같은 차이가 우연에 의한 일시적 현상인지 아니면 통계적으로 가격인하 효과가 실제로 존재하는지 통계검정을 통해 확인한다.</p>
+<p><span class="math inline">\(\hat{p}_{변경전} = 0.1\)</span> 구매율에서 가격인하에 따른 구매율이 <span class="math inline">\(\hat{p}_{변경후} = 0.2\)</span> 로 올라간 상황이 실질적인 가격인하효과에 따른 구매율 변동이 있다는 주장에 대해 <span class="math inline">\(n=10\)</span> 방문객을 대상으로 판단하기는 이르다는 것이 <span class="math inline">\(p-값\)</span> 이 신뢰수준 95%에서 나타나고 있다.</p>
+<div class="cell" data-execution_count="4">
+<details>
+<summary>코드 보기</summary>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>ab_testing.groupby([<span class="st">'구매여부'</span>, <span class="st">'AB테스팅'</span>], as_index<span class="op">=</span><span class="va">False</span>)[<span class="st">'고객'</span>].count() </span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>ab_testing_prop <span class="op">=</span> pd.pivot(ab_testing_long, index <span class="op">=</span> <span class="st">'AB테스팅'</span>, columns <span class="op">=</span> <span class="st">'구매여부'</span>, values<span class="op">=</span><span class="st">'고객'</span>).add_prefix(<span class="st">'구매_'</span>)</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>ab_testing_prop[<span class="st">'합계'</span>] <span class="op">=</span> ab_testing_prop[<span class="st">'구매_0'</span>] <span class="op">+</span> ab_testing_prop[<span class="st">'구매_1'</span>]</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>ab_testing_prop[<span class="st">'구매율'</span>] <span class="op">=</span> ab_testing_prop[<span class="st">'구매_1'</span>] <span class="op">/</span> ab_testing_prop[<span class="st">'합계'</span>]</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>ab_testing_prop</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-display" data-execution_count="19">
+
+<div>
+
+<table class="dataframe table table-sm table-striped">
+  <thead>
+    <tr>
+      <th>구매여부</th>
+      <th>구매_0</th>
+      <th>구매_1</th>
+      <th>합계</th>
+      <th>구매율</th>
+    </tr>
+    <tr>
+      <th>AB테스팅</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>변경전</th>
+      <td>9</td>
+      <td>1</td>
+      <td>10</td>
+      <td>0.1</td>
+    </tr>
+    <tr>
+      <th>변경후</th>
+      <td>8</td>
+      <td>2</td>
+      <td>10</td>
+      <td>0.2</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+</div>
+</div>
+<div class="cell" data-execution_count="5">
+<details>
+<summary>코드 보기</summary>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> statsmodels.stats.proportion <span class="im">import</span> proportions_ztest</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>purchased <span class="op">=</span> ab_testing_prop[<span class="st">'구매_1'</span>].tolist()</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>prospect <span class="op">=</span> ab_testing_prop[<span class="st">'합계'</span>].tolist()</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>stat, pval <span class="op">=</span> proportions_ztest(purchased, prospect, alternative <span class="op">=</span> <span class="st">'smaller'</span>)</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">'</span><span class="sc">{0:0.3f}</span><span class="st">'</span>.<span class="bu">format</span>(pval))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>0.266</code></pre>
+</div>
+</div>
+<p><code>p-값</code>이 <strong>0.266</strong> 으로 유의수준 0.05보다 크기 때문에 귀무가설을 기각할 수 없어 구매자가 1명 늘었지만 효과가 있다고 단정하기는 이르다고 볼 수 있다.</p>
+
+
+<!-- -->
+
+<p><strong>동적가격책정(Dynamic Pricing)</strong> 방법론으로 자주 언급되는 <strong>톰슨 샘플링(Thompson Sampling)</strong>은 베이지안 통계 방법론에 근간을 두고 있다. 기존 사람이 다양한 연구를 바탕으로 가격을 선정하여 캠페인 등을 통해 실행에 옮기거나 A/B 테스팅과 같이 실험을 반복해서 주기적으로 최적 가격을 옮겨가는 방식이 아니라 톰슨 샘플링을 통해 최적의 가격을 실시간으로 책정하며 동적으로 유지하는 체계를 갖추기 위해 가장 기본이 되는 베타분포와 베르누이분포를 먼저 이해해야 한다.</p>
+<p>톰슨 샘플링을 통해 풀려고 하는 문제는 가격정책을 몇가지로 지정한 후 예를 들어 3가지로 정했다고 가정하면 3가지 가격정책을 고객에게 보여주고 실시간으로 구매 혹은 비구매, 클릭 혹은 비클릭, 가입 혹은 비가입과 같은 성공 혹은 실패 결과를 얻고 이를 다시 가격정책에 반영하여 최적 가격을 찾아가는 방식이다.</p>
+<p>이와 같은 동적 가격결정 방식을 구현하기 위해 수학적으로 가장 단순한 성공과 실패를 모형화하는데 베르누이 분포를 가정하고 지속적인 사후 확률분포 갱신을 위해 베르누이 분포의 켤레 사전분포로 베타분포를 선택하여 사후확률도 베타분포가 나오도록 하여 설계한다.</p>
+</section>
+</section>
+<section id="베타-분포" class="level1 page-columns page-full" data-number="3">
+<h1 data-number="3"><span class="header-section-number">3</span> 베타 분포</h1>
+<p>베타분포는 그 유연한 특성으로 인해 다양한 확률분포의 켤레 사전분포로 많이 활용된다. 예를 들어 서로 다른 3가지 가격 정책이 있는데 어느 가격대를 고객이 선택할지 모를 경우 균등분포로 두고 사후적으로 고객선택여부를 판정하고자 하는 경우 베타분포의 형태모수를 <span class="math inline">\(\alpha =1, \beta=1\)</span>로 선정하면 자연스럽게 균등분포를 모형에 넣을 수 있게 된다.</p>
+<section id="감마와-베타-함수" class="level2" data-number="3.1">
+<h2 data-number="3.1" class="anchored" data-anchor-id="감마와-베타-함수"><span class="header-section-number">3.1</span> 감마와 베타 함수</h2>
+<p>베타함수는 다음과 같은 <span class="math inline">\(\Gamma\)</span> 함수로 표현할 수 있다. <span class="math inline">\(\Gamma\)</span> 함수는 자연수의 계승 또는 팩토리얼(factorial)을 의미하며 수식으로 표현하면 다음과 같다.</p>
+<p><span class="math display">\[\Gamma(n) = (n-1)!\]</span></p>
+<p>베타함수는 이항분포에 나오는 이항계수를 실수범위로 확장하여 일반화하는 형태로 알려져 있다.</p>
+<p><span class="math display">\[Beta(\alpha, \beta)=\frac{\Gamma(\alpha)\,\Gamma(\beta)}{\Gamma(\alpha+\beta)}\]</span></p>
+</section>
+<section id="베타-분포-1" class="level2 page-columns page-full" data-number="3.2">
+<h2 data-number="3.2" class="anchored" data-anchor-id="베타-분포-1"><span class="header-section-number">3.2</span> 베타 분포</h2>
+<p>베타분포는 베르누이, 이항, 음이항, 기하 분포의 켤레 사전분포(Conjugate Prior)이면서 0과 1사이 비율과 퍼센트지 무작위 사건을 모형화하는데 유용하다. 예를 들어, 구매/비구매, 전환율 등이 0과 1사이 비율을 갖는 비결정사건으로 대입해볼 수 있다.</p>
+<div class="page-columns page-full"><p></p><div class="no-row-height column-margin column-container"><span class="">사후 확률(Posterior Probability)이 사전 확률(Prior Probability) 분포와 같은 분포 계열에 속하는 경우 그 사전확률분포를 <strong>켤레 사전분포(Conjugate Prior)</strong>라고 하고 이 경우 사후확률을 계산하기 쉬운 장점이 크다.</span></div></div>
+<p><span class="math display">\[Beta(\alpha,\beta):\,\, prob(x|\alpha,\beta)=\frac{\Gamma(\alpha+\beta)}{{\Gamma(\alpha)\,\Gamma(\beta)}}x^{\alpha-1}(1-x)^{\beta-1}\\=\frac{x^{\alpha-1}(1-x)^{\beta-1}}{B(\alpha,\beta)}\]</span></p>
+<p>베타분포의 평균과 분산은 <span class="math inline">\(\alpha\)</span>와 <span class="math inline">\(\beta\)</span> 형태 모수를 사용하여 계산할 수 있다.</p>
+<p><span class="math display">\[E(x)=\mu = \frac{\alpha}{\alpha + \beta}\]</span></p>
+<p><span class="math display">\[V(x)=\frac{\alpha\beta}{(\alpha+\beta)^{2}(\alpha+\beta+1)}\]</span></p>
+</section>
+<section id="시각화-1" class="level2" data-number="3.3">
+<h2 data-number="3.3" class="anchored" data-anchor-id="시각화-1"><span class="header-section-number">3.3</span> 시각화</h2>
+<p>예를 들어, <span class="math inline">\(\alpha=2,\beta=2\)</span> 형태모수를 갖는 <span class="math inline">\(Beta(\alpha=2,\beta=2)\)</span> 함수는 최고차항이 음의부호를 갖는 2차 방정식모양으로 표현할 수 있다. <span class="math inline">\(\alpha,\beta\)</span> 형태모수를 달리하여 0 과 1 사이 유연하게 다양한 함수형태를 모형화할 수 있는 것이 보여주고 있다.</p>
+<p><span class="math display">\[Beta(\alpha=2,\beta=2):\,\, prob(x|\alpha,\beta)=\frac{\Gamma(2+2)}{{\Gamma(2)\,\Gamma(2)}}x^{2-1}(1-x)^{2-1}\\=\frac{\Gamma(4)}{{\Gamma(2)\,\Gamma(2)}}x(1-x)=상수\times(x-x^2)\]</span></p>
+<pre class="{python}"><code>from scipy.stats import beta
+import matplotlib.pyplot as plt
+import numpy as np
+
+x = np.linspace(0, 1.0, 100)
+y1 = beta.pdf(x, 0.5, 0.5)
+y2 = beta.pdf(x, 2, 2)
+y3 = beta.pdf(x, 2, 5)
+y4 = beta.pdf(x, 5, 1)
+
+plt.subplot(2, 2, 1) 
+plt.title('Beta(a:0.5, b:0.5)')
+plt.plot(x, y1, "r-")
+
+plt.subplot(2, 2, 2) 
+plt.title('Beta(a:2, b:2)')
+plt.plot(x, y2, "g-")
+
+plt.subplot(2, 2, 3) 
+plt.title('Beta(a:2, b:5)')
+plt.plot(x, y3, "b--")
+
+plt.subplot(2, 2, 4) 
+plt.title('Beta(a:5, b:1)')
+plt.plot(x, y4, "b--")
+
+plt.tight_layout()
+plt.show()</code></pre>
+</section>
+<section id="베타분포-alpha-beta" class="level2" data-number="3.4">
+<h2 data-number="3.4" class="anchored" data-anchor-id="베타분포-alpha-beta"><span class="header-section-number">3.4</span> 베타분포 <span class="math inline">\(\alpha, \beta\)</span></h2>
+<p>베타분포 형태모수 <span class="math inline">\(\alpha, \beta\)</span>를 달리할 때 분포의 모양을 살펴보자. 추후 베이지안 갱신을 통해 사후 베타분포가 베르누이 분포와 켤레분포로 사용될 경우 <span class="math inline">\(\alpha, \beta\)</span> 값을 성공과 실패로 갱신할 땔 분포의 변화를 이해하는데 도움이 될 것이다.</p>
+<pre class="{python}"><code># 데이터
+x = np.linspace(0, 1.0, 100)
+y11 = beta.pdf(x, 0.01, 0.01)
+y12 = beta.pdf(x, 0.01, 1)
+y13 = beta.pdf(x, 1, 0.01)
+y21 = beta.pdf(x, 1, 1)
+y22 = beta.pdf(x, 1, 2)
+y23 = beta.pdf(x, 1, 3)
+y31 = beta.pdf(x, 2, 1)
+y32 = beta.pdf(x, 3, 1)
+y33 = beta.pdf(x, 4, 1)
+y41 = beta.pdf(x, 4, 2)
+y42 = beta.pdf(x, 4, 3)
+y43 = beta.pdf(x, 4, 4)
+
+# 1번째 행 ===============
+plt.subplot(4, 3, 1) 
+plt.title('Beta(a:0, b:0)')
+plt.plot(x, y11, "r-")
+
+plt.subplot(4, 3, 2) 
+plt.title('Beta(a:0, b:1)')
+plt.plot(x, y12, "r-")
+
+plt.subplot(4, 3, 3) 
+plt.title('Beta(a:1, b:0)')
+plt.plot(x, y13, "r-")
+
+# 2번째 행 ===============
+plt.subplot(4, 3, 4) 
+plt.title('Beta(a:1, b:1)')
+plt.plot(x, y21, "r-")
+
+plt.subplot(4, 3, 5) 
+plt.title('Beta(a:1, b:2)')
+plt.plot(x, y22, "r-")
+
+plt.subplot(4, 3, 6) 
+plt.title('Beta(a:1, b:3)')
+plt.plot(x, y23, "r-")
+
+# 3번째 행 ===============
+plt.subplot(4, 3, 7) 
+plt.title('Beta(a:2, b:1)')
+plt.plot(x, y31, "r-")
+
+plt.subplot(4, 3, 8) 
+plt.title('Beta(a:3, b:1)')
+plt.plot(x, y32, "r-")
+
+plt.subplot(4, 3, 9) 
+plt.title('Beta(a:4, b:1)')
+plt.plot(x, y33, "r-")
+
+# 4번째 행 ===============
+plt.subplot(4, 3, 10) 
+plt.title('Beta(a:4, b:2)')
+plt.plot(x, y41, "r-")
+
+plt.subplot(4, 3, 11) 
+plt.title('Beta(a:4, b:3)')
+plt.plot(x, y42, "r-")
+
+plt.subplot(4, 3, 12) 
+plt.title('Beta(a:4, b:4)')
+plt.plot(x, y43, "r-")
+
+plt.tight_layout()
+plt.show()
+</code></pre>
+</section>
+</section>
+<section id="구매-사후확률" class="level1" data-number="4">
+<h1 data-number="4"><span class="header-section-number">4</span> 구매 사후확률</h1>
+<section id="구매-혹은-비구매" class="level2" data-number="4.1">
+<h2 data-number="4.1" class="anchored" data-anchor-id="구매-혹은-비구매"><span class="header-section-number">4.1</span> 구매 혹은 비구매</h2>
+<p>오프라인에서 고객별로 구매 혹은 비구매, 온라인에서는 구독 혹은 비구독, 클릭 혹은 비클릭 등과 같이 고객의 행동을 달리 표현할 수 있다. 이와 같은 구매 혹은 비구매는 성공 혹은 실패를 나타내는 베르누이 시행으로 표현할 수 있다. 여기서 <span class="math inline">\(\theta\)</span>는 구매확률을 나타낸다.</p>
+<p><span class="math display">\[X \sim Bernoulli (\theta)\]</span> 확률밀도함수는 다음과 같다. 여기서 <span class="math inline">\(\theta=0,1\)</span> 성공과 실패값을 갖게 된다.</p>
+<p><span class="math display">\[p(x|\theta) = \theta^x (1-\theta)^{1-x}\]</span></p>
+</section>
+<section id="가능도" class="level2" data-number="4.2">
+<h2 data-number="4.2" class="anchored" data-anchor-id="가능도"><span class="header-section-number">4.2</span> 가능도</h2>
+<p>사후확률은 사전확률 곱하기 가능도로 정의된다. 따라서, 사전확률은 <span class="math inline">\(Beta(\alpha, \beta)\)</span>로 정의하고 베르누이 가능도 함수를 구해 둘을 곱하게 되면 사후확률을 구할 수 있다. 먼저 가능도는 다음과 같이 계산된다.</p>
+<p><span class="math display">\[
+L(\theta;x) = p(\{x_i\}|\theta) = \prod_{i} p(x_i|\theta)\\ = \prod_{i} \theta^{x_i}(1-\theta)^{1-x_i}\\=\theta^{\sum_{i}{x_i}}(1-\theta)^{\sum_i{(1-x_i )}}\\=\theta^{구매횟수}(1-\theta)^{비구매횟수}
+\]</span></p>
+</section>
+<section id="사후확률" class="level2" data-number="4.3">
+<h2 data-number="4.3" class="anchored" data-anchor-id="사후확률"><span class="header-section-number">4.3</span> 사후확률</h2>
+<p>베르누이분포의 사전확률 켤레분포가 베타분포로 치환하여 둘을 곱하게 되면 사후확률을 구할 수 있다.</p>
+<p><span class="math display">\[
+p(\theta|z,N) = \frac{p(z,N|\theta)p(\theta)}{p(z,N)} \approx
+L(\theta;x) \times p(\theta)
+\]</span></p>
+<p>사전분포를 베타분포로 두고 베르누이분포의 가능도 함수를 활용하여 사후확률을 구하면 다음과 같이 수식으로 표현할 수 있다.</p>
+<p><span class="math display">\[
+\begin{aligned}
+p(\theta \mid X)
+&amp;\propto \theta^{\alpha + \sum x_t - 1} (1 - \theta)^{\beta + N - \sum x_t - 1}
+\\
+&amp;\qquad \qquad \downarrow
+\\
+\theta \mid X &amp;\sim \text{Beta}\Big(\alpha + \sum_{t=1}^{n} x_t, \beta + N - \sum_{t=1}^{n} x_t \Big).
+\end{aligned}
+\]</span></p>
+</section>
+</section>
+<section id="시각화-2" class="level1" data-number="5">
+<h1 data-number="5"><span class="header-section-number">5</span> 시각화</h1>
+<section id="사전분포" class="level2" data-number="5.1">
+<h2 data-number="5.1" class="anchored" data-anchor-id="사전분포"><span class="header-section-number">5.1</span> 사전분포</h2>
+<p>양극단이 적고 중앙이 두툼한 형태 정규분포 비슷한 사전분포를 가정한다.</p>
+<pre class="{python}"><code>plt.rcParams['font.family'] = 'NanumGothic'
+x = np.linspace(0, 1.0, 100)
+prior_y = beta.pdf(x, 2, 2)
+
+plt.subplot(2, 2, 4) 
+plt.title('사전분포 - 형태모수(a:2, b:2)를 갖는 베타분포')
+plt.plot(x, prior_y, "b")
+
+plt.tight_layout()
+plt.show()
+
+</code></pre>
+</section>
+<section id="실제구매-데이터" class="level2" data-number="5.2">
+<h2 data-number="5.2" class="anchored" data-anchor-id="실제구매-데이터"><span class="header-section-number">5.2</span> 실제구매 데이터</h2>
+<p>고객 <span class="math inline">\(N\)</span> 명중 <span class="math inline">\(n\)</span> 명이 구매를 했다고 가정하자. 예를 들어, 광고 캠페인에 <span class="math inline">\(N=10\)</span> 명에게 문자를 돌려 <span class="math inline">\(n=6\)</span>이 구매를 한 경우 가능도를 아래와 같이 베타분포로 표현할 수 있다.</p>
+<pre class="{python}"><code>import math
+
+likelihoods = []
+
+prob_space = np.linspace(0, 1.0, 100)
+
+for i in range(0, len(prob_space)):
+    likelihood = beta.pdf(prob_space[i], 10, 6)
+    likelihoods.append(likelihood)
+    # print(likelihood)
+
+plt.plot(prob_space, likelihoods)
+plt.title('가능도 함수 - 형태모수(\u03b1=6, \u03b2=4)를 갖는 베타분포')
+plt.show()
+
+prob_space[np.argmax(likelihoods)]</code></pre>
+</section>
+<section id="사후확률-1" class="level2" data-number="5.3">
+<h2 data-number="5.3" class="anchored" data-anchor-id="사후확률-1"><span class="header-section-number">5.3</span> 사후확률</h2>
+<p>베타분포를 사전확률로 갖고 베르누이/이항분포를 결합한 사후확률은 갱신된 형태모수 <span class="math inline">\(\alpha, \beta\)</span>를 갖는 베타분포입니다. 따라서,</p>
+<p><span class="math display">\[사전분포 \sim Beta(2,2) \qquad \rightarrow \qquad 사후분포 \sim Beta(2+6, 2+10-6)\]</span></p>
+<pre class="{python}"><code>posteriors = []
+
+prob_space = np.linspace(0, 1.0, 100)
+
+for i in range(0, len(prob_space)):
+    posterior = beta.pdf(prob_space[i], 8, 6)
+    posteriors.append(posterior)
+    # print(posterior)
+
+plt.plot(prob_space, posteriors)
+plt.title('사후분포  - 형태모수(\u03b1=8, \u03b2=6)를 갖는 베타분포')
+plt.show()
+
+prob_space[np.argmax(posteriors)]</code></pre>
+</section>
+<section id="결합" class="level2" data-number="5.4">
+<h2 data-number="5.4" class="anchored" data-anchor-id="결합"><span class="header-section-number">5.4</span> 결합</h2>
+<p>앞서 각기 달리 시각화한 것을 사전, 가능도, 사후 분포를 함께 살펴보자. 0.5 전후 구매확률이 있다고 사전분포를 가정한 후 실제 데이터를 통해 수집된 내용은 10명 중 6명이 구매를 한 것이 확인되었다. 이를 바탕으로 사전분포와 가능도를 결합하여 사후 구매확률을 자동으로 갱신할 수 있다.</p>
+<div class="panel-tabset">
+<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-2-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-2-1" role="tab" aria-controls="tabset-2-1" aria-selected="true">나눠보기</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-2-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-2-2" role="tab" aria-controls="tabset-2-2" aria-selected="false">합쳐보기</a></li></ul>
+<div class="tab-content">
+<div id="tabset-2-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-2-1-tab">
+<pre class="{python}"><code>
+# 사전분포 ===============
+plt.subplot(3, 1, 1)
+x = np.linspace(0, 1.0, 100)
+y_prior = beta.pdf(x, 2, 2)
+
+plt.plot(x, y_prior, "g")
+plt.title('Beta(\u03b1=2, \u03b2=2)')
+
+# 가능도 분포 ===============
+plt.subplot(3, 1, 2) 
+plt.plot(prob_space, likelihoods, "b")
+plt.title('"가능도 함수 - 형태모수(\u03b1=6, \u03b2=4)를 갖는 베타분포",')
+
+# 사후분포 ===============
+plt.subplot(3, 1, 3) 
+plt.plot(prob_space, posteriors, "r")
+plt.title('사후분포  - 형태모수(\u03b1=8, \u03b2=6)를 갖는 베타분포')
+
+plt.tight_layout()
+plt.show()</code></pre>
+</div>
+<div id="tabset-2-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-2-2-tab">
+<pre class="{python}"><code>
+plt.title('사후분포  - 형태모수(\u03b1=8, \u03b2=6)를 갖는 베타분포')
+# plt.subtitle('사전, 가능도, 사후 분포')
+
+plt.plot(x, y_prior, "g")
+plt.plot(prob_space, likelihoods, "b")
+plt.plot(prob_space, posteriors, "r")
+
+plt.legend(["사전분포", "가능도", "사후분포"], loc=1)
+plt.tight_layout()
+plt.show()</code></pre>
+</div>
+</div>
+</div>
+<p><code>{r setup, include=FALSE} knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE,                       comment="", digits = 3, tidy = FALSE, prompt = FALSE, fig.align = 'center')</code></p>
+</section>
+</section>
+<section id="들어가며" class="level1" data-number="6">
+<h1 data-number="6"><span class="header-section-number">6</span> 들어가며</h1>
+<p>가격 결정에서 독과점 구조에서 가격을 직접 결정할 수 있는 시장이 아닌 경우 고객 수요를 파악하는 것은 무척 중요하다. 여기서, <strong>독점기업</strong>은 대체 불가능한 제품 혹은 서비스를 유일하게 공급하는 기업을 의미한다. 일반적으로 가격 변화에 모든 수요물량을 정확히 알 수가 없기 때문에 다음 데이터를 가지고 수요 곡선을 가정해보자.</p>
+<pre class="{r}"><code>library(tidyverse)
+library(ggrepel)
+
+segment_tbl &lt;- tibble( x = c(50, 
+                             50+150, 
+                             50+150+350, 
+                             50+150+350+250,
+                             50+150+350+250+200),
+                       y = c(20, 15, 10, 8, 6))
+
+
+
+segment_tbl %&gt;% 
+  ggplot(aes(x = x, y = y)) +
+    geom_point() +
+    labs(x = "수요물량",
+         y = "가격",
+         title = "가격과 수요물량 관계") +
+     geom_hline(yintercept = 5, linetype = 2, color = "gray70") +
+     expand_limits(x =0, y =0) +
+     theme_bw(base_family = "NanumGothic") +
+     annotate("text", x = 1, y = 6, label = "변동비", size = 3)</code></pre>
+<p>가격 변화에 따라 관측된 5개 관측점을 선형 모형을 가정하여 난수를 발생하여 다양한 가격에 따른 물량을 시각화해보자. 실무에서는 자사의 가격변화를 달리하여 수많은 가격별 수요물량을 산출하는 것은 불가능하지만 경우에 따라서 경쟁제품이 많고 업력이 오래된 경우 가격별 물량 데이터를 얻어 회귀식으로부터 수요곡선을 도출하는 방법도 존재한다.</p>
+<pre class="{r}"><code>## Price Response 곡선 ------------
+model_tbl &lt;- segment_tbl %&gt;% 
+  rename(물량 = x, 가격 = y)
+
+price_response_lm &lt;- lm(물량 ~ 가격, data = model_tbl)
+
+generate_demands &lt;- function(price) {
+  
+  price_response_coef &lt;- coef(price_response_lm)
+  error &lt;- rnorm(length(price), mean = 0, sd = sd(model_tbl$물량))
+  
+  quantity &lt;- price_response_coef[1] + price_response_coef[2] * price + error
+  
+  return(quantity)
+}
+
+## 시각화 --------
+price_seq &lt;- seq(0, 30, 1)
+quantity_seq &lt;- generate_demands(price_seq)
+
+optimal_tbl &lt;- tibble(가격 = price_seq, 수요물량 = quantity_seq)
+
+optimal_tbl %&gt;% 
+  ggplot(aes( x= 가격, y = 수요물량)) +
+    geom_point() +
+    geom_smooth(method='lm') +
+    geom_hline(yintercept = 5, linetype = 2, color = "gray70") +
+    expand_limits(x =0, y =0) +
+    theme_bw(base_family = "NanumGothic") +
+    annotate("text", x = 1, y = 6, label = "변동비", size = 3)  </code></pre>
+</section>
+<section id="수요곡선-추정" class="level1" data-number="7">
+<h1 data-number="7"><span class="header-section-number">7</span> 수요곡선 추정</h1>
+<p>데이터로부터 수요곡선을 추정하여 정확한 함수의 형태를 알 수 있다면 매출 혹은 순익을 극대화하는 물량을 계산할 수 있다.</p>
+<p>수요함수를 물량에 관계없이 일정 가격을 부과하는 형태를 갖게 할 수도 있으며 선형 혹은 비선형 모형을 가정하여 추정할 수도 있다.</p>
+<ul>
+<li>상수 수요모형: <span class="math inline">\(d(P) = \alpha\)</span></li>
+<li>선형 수요모형: <span class="math inline">\(d(P) = \alpha + \beta \times P\)</span></li>
+<li>비선형 수요모형: <span class="math inline">\(d(P) = e^{\alpha + \beta \times log(P)}\)</span></li>
+</ul>
+<p>::: {.column-margin}</p>
+<p><strong>베지어 곡선</strong></p>
+<p><a href="https://ko.javascript.info/bezier-curve">베지어 곡선</a>을 이용하여 가격과 수요물량 사이 보간을 할 수 있다. <code>Hmisc::bezier()</code> 함수를 사용하면 수월히 값을 구할 수 있다.</p>
+<p>```{r bezier} library(tidyverse ) bezier_tbl &lt;- Hmisc::bezier(segment_tbl<span class="math inline">\(x, segment_tbl\)</span>y) %&gt;% as_tibble()</p>
+<p>segment_tbl %&gt;% ggplot(aes(x = x, y = y)) + geom_point() + geom_path(data= bezier_tbl, aes(x = x, y = y), color = “blue”) + labs(x = “수요물량”, y = “가격”, title = “가격과 수요물량 관계”) + geom_hline(yintercept = 5, linetype = 2, color = “gray70”) + expand_limits(x =0, y =0) + theme_bw(base_family = “NanumGothic”) + annotate(“text”, x = 1, y = 6, label = “변동비”, size = 3) + scale_x_continuous(labels = scales::comma)</p>
+<pre><code>
+:::
+
+
+## 상수 수요모형
+
+예를 들어 가격을 수요물량에 관계없이 일정가격 10을 가정할 경우 다음과 같다. 하지만 물량에는 한계가 있어 특정 물량((1,500)을 넘어가게 되면 공급을 더이상 할 수 없으니 가격은 0이 된다.
+
+``` {r constant}
+## 시각화 ---------------
+step_tbl &lt;- tribble(~"x", ~"y",
+        0, 10,
+        1250, 10,
+        1250,0,
+        2000,0)
+
+segment_tbl %&gt;% 
+  ggplot(aes(x = x, y = y)) +
+    geom_point() +
+    labs(x = "수요물량",
+         y = "가격",
+         title = "가격과 수요물량 관계") +
+     geom_hline(yintercept = 5, linetype = 2, color = "gray70") +
+     expand_limits(x =0, y =0) +
+     theme_bw(base_family = "NanumGothic") +
+     annotate("text", x = 30, y = 6, label = "변동비($5)", size = 3)  +
+     scale_x_continuous(labels = scales::comma)  +
+     expand_limits(x = c(0, 2000)) +
+     geom_path(data = step_tbl, aes(x = x, y = y), color = "blue")</code></pre>
+<section id="선형-회귀-모형" class="level2" data-number="7.1">
+<h2 data-number="7.1" class="anchored" data-anchor-id="선형-회귀-모형"><span class="header-section-number">7.1</span> 선형 회귀 모형</h2>
+<p>수요함수(<span class="math inline">\(d(P)\)</span>, price-response function)를 선형으로 가정하고 Price-Response 함수를 추정해보자. 가격과 수요함수를 선형회귀식을 통해 추정할 경우 모수가 3개라서 관측점이 2개 이상이면 선형회귀방정식을 도출해낼 수 있다. 선형회귀식이 가격별 수요물량을 제대로 모형으로 일반화할 수 있는지 시각화를 통해 검증하는 방식이 혹시라도 생길 수 있는 전산 오류 혹은 이상점에 따른 불확실성 제거를 위해서도 꼭 필요한 과정이다.</p>
+<p>``` {r nls} ## 비선형 수요모형 ———</p>
+<p>lm_mod &lt;- lm(y ~ x, data = segment_tbl)</p>
+<p>lm_coef &lt;- broom::tidy(lm_mod) %&gt;% pull(estimate)</p>
+<p>lm_fn &lt;- function(x) lm_coef[1] + lm_coef[2] * x</p>
+</section>
+<section id="시각화-3" class="level2" data-number="7.2">
+<h2 data-number="7.2" class="anchored" data-anchor-id="시각화-3"><span class="header-section-number">7.2</span> 시각화 —————</h2>
+<p>segment_tbl %&gt;% ggplot(aes(x = x, y = y)) + geom_point() + geom_function(fun = lm_fn, color = “blue”) + labs(x = “수요물량”, y = “가격”, title = “가격과 수요물량 관계”) + geom_hline(yintercept = 5, linetype = 2, color = “gray70”) + expand_limits(x =0, y =0) + theme_bw(base_family = “NanumGothic”) + annotate(“text”, x = 20, y = 6, label = “변동비($5)”, size = 3) + scale_x_continuous(labels = scales::comma)</p>
+<pre><code>
+
+## 비선형 회귀모형
+
+수요함수($d(P)$, price-response function)를 선형회귀식을 가정한 경우 변동율이 일정하다고 가정했지만 경우에 따라서 가격에 민감하게 반응하는 탄력성을 갖는 경우 특정 가격대에서는 급격한 수요변화를 일정 가격대를 넘게 되면 완만한 수요변화를 가정하는 것도 합리적이다. 이와 같은 가격대별로 비선형 가격탄력성을 갖는 관계를 비선형 회귀곡선으로 적합시켜 후속 업무에 활용할 수 있다. 
+
+
+$$d(P) = e^{\alpha + \beta \times log(P)}$$
+
+``` {r nls-fit}
+## 비선형 수요모형 ---------
+get_coef &lt;- function() {
+  x &lt;- segment_tbl$x
+  y &lt;- segment_tbl$y
+  
+  demand_fit &lt;- nls(y ~ exp(a + b * log(x)), start=list(a=0, b=0))
+  
+  nls_coef &lt;- broom::tidy(demand_fit) %&gt;% 
+    pull(estimate)
+  return(list(a = nls_coef[1],
+              b = nls_coef[2]))
+}
+
+nls_coef &lt;- get_coef()
+
+nls_fn &lt;- function(x) exp(nls_coef$a + nls_coef$b * log(x))
+
+## 시각화 ---------------
+segment_tbl %&gt;% 
+  ggplot(aes(x = x, y = y)) +
+    geom_point() +
+    geom_function(fun = nls_fn, color = "blue") +
+    labs(x = "수요물량",
+         y = "가격",
+         title = "가격과 수요물량 관계") +
+     geom_hline(yintercept = 5, linetype = 2, color = "gray70") +
+     expand_limits(x =0, y =0) +
+     theme_bw(base_family = "NanumGothic") +
+     annotate("text", x = 20, y = 6, label = "변동비($5)", size = 3)  +
+     scale_x_continuous(labels = scales::comma)  </code></pre>
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    target: function(trigger) {
+      return trigger.previousElementSibling;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  const viewSource = window.document.getElementById('quarto-view-source') ||
+                     window.document.getElementById('quarto-code-tools-source');
+  if (viewSource) {
+    const sourceUrl = viewSource.getAttribute("data-quarto-source-url");
+    viewSource.addEventListener("click", function(e) {
+      if (sourceUrl) {
+        // rstudio viewer pane
+        if (/\bcapabilities=\b/.test(window.location)) {
+          window.open(sourceUrl);
+        } else {
+          window.location.href = sourceUrl;
+        }
+      } else {
+        const modal = new bootstrap.Modal(document.getElementById('quarto-embedded-source-code-modal'));
+        modal.show();
+      }
+      return false;
+    });
+  }
+  function toggleCodeHandler(show) {
+    return function(e) {
+      const detailsSrc = window.document.querySelectorAll(".cell > details > .sourceCode");
+      for (let i=0; i<detailsSrc.length; i++) {
+        const details = detailsSrc[i].parentElement;
+        if (show) {
+          details.open = true;
+        } else {
+          details.removeAttribute("open");
+        }
+      }
+      const cellCodeDivs = window.document.querySelectorAll(".cell > .sourceCode");
+      const fromCls = show ? "hidden" : "unhidden";
+      const toCls = show ? "unhidden" : "hidden";
+      for (let i=0; i<cellCodeDivs.length; i++) {
+        const codeDiv = cellCodeDivs[i];
+        if (codeDiv.classList.contains(fromCls)) {
+          codeDiv.classList.remove(fromCls);
+          codeDiv.classList.add(toCls);
+        } 
+      }
+      return false;
+    }
+  }
+  const hideAllCode = window.document.getElementById("quarto-hide-all-code");
+  if (hideAllCode) {
+    hideAllCode.addEventListener("click", toggleCodeHandler(false));
+  }
+  const showAllCode = window.document.getElementById("quarto-show-all-code");
+  if (showAllCode) {
+    showAllCode.addEventListener("click", toggleCodeHandler(true));
+  }
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
+<div class="sourceCode" id="cb6" data-shortcodes="false"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> "A/B 테스팅"</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="an">filters:</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="co">   - lightbox</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="an">lightbox:</span><span class="co"> auto</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="an">editor_options:</span><span class="co"> </span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="co">  chunk_output_type: console</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="an">jupyter:</span><span class="co"> python3</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a><span class="fu"># 가격을 찾아가는 과정</span></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>가격을 인상하거나 인하하게 되면 경제상황과 시장경쟁강도에 따라 수요가 탄력적으로 변화하게 된다. 다른 조건을 다 동일하게 두고 가격을 올리는 것이 유리한지 가격을 내리는 것이 유리한지 가격을 변동하게 되면 얼마의 가격변동폭을 두여야하는지 근거가 있다면 바로 실행하면 되고 만약 가격 변동에 따른 유불리를 판단할 수 없다면 실험을 설계하여 사업목표 달성을 위해 나아가는 것도 한 방법이다.</span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a><span class="al">![](images/ab-testing.png)</span></span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>실험을 여러가지 방식으로 설계를 할 수 있지만 가장 큰 대원칙은 다른 조건은 모두 동일하게 하고 단 하나의 요인만 변동을 시키고 실험의 효과를 정확히 관측하기 위해 모집단에서 표본을 동일하게 **실험군**(가격을 인상 혹은 인하)과 **대조군**(가격을 기존 가격 그대로 유지)으로 나눠 구매여부 혹은 클릭여부 등 실험목표에 유의적인 차이가 있는지를 데이터를 통해 확인하는 것이다.</span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>여기서 목표를 새로운 가격대를 탐색하는 것이 목적인지 예를 들어 시장에 전혀 나온적인 없는 신제품의 경우 가격 탐색을 목적으로 A/B 테스팅을 기획할 수 도 있다. 목표를 설정하고 문제를 해결할 것인지 새로운 기회를 찾을 것인지 정한 후에, 영역을 특정한 후에 가설을 세워 실제 데이터를 통해 검증하고 마지막으로 결과를 도출한다. 이 모든 과정에 데이터는 필수적으로 동반된다.</span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a>:::{.callout-note}</span>
+<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a>**A/B 테스팅 작업흐름**</span>
+<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a>목표설정 <span class="dv">&amp;rarr;</span> 영역 설정 (문제/기회) <span class="dv">&amp;rarr;</span> 가설 설정 <span class="dv">&amp;rarr;</span> (가설) 검정 <span class="dv">&amp;rarr;</span> 의사결정</span>
+<span id="cb6-27"><a href="#cb6-27" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb6-28"><a href="#cb6-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-29"><a href="#cb6-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-30"><a href="#cb6-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-31"><a href="#cb6-31" aria-hidden="true" tabindex="-1"></a><span class="fu"># A/B 테스팅</span></span>
+<span id="cb6-32"><a href="#cb6-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-35"><a href="#cb6-35" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb6-36"><a href="#cb6-36" aria-hidden="true" tabindex="-1"></a><span class="co">#| eval: true</span></span>
+<span id="cb6-37"><a href="#cb6-37" aria-hidden="true" tabindex="-1"></a><span class="co">#| hide: true</span></span>
+<span id="cb6-38"><a href="#cb6-38" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: FALSE</span></span>
+<span id="cb6-39"><a href="#cb6-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-40"><a href="#cb6-40" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb6-41"><a href="#cb6-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-42"><a href="#cb6-42" aria-hidden="true" tabindex="-1"></a>ab_testing <span class="op">=</span> pd.read_csv(<span class="st">'data/ab_testing.csv'</span>)</span>
+<span id="cb6-43"><a href="#cb6-43" aria-hidden="true" tabindex="-1"></a>ab_testing.head()</span>
+<span id="cb6-44"><a href="#cb6-44" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb6-45"><a href="#cb6-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-46"><a href="#cb6-46" aria-hidden="true" tabindex="-1"></a><span class="fu">## 문제 정의 및 목표설정</span></span>
+<span id="cb6-47"><a href="#cb6-47" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-48"><a href="#cb6-48" aria-hidden="true" tabindex="-1"></a>기존 제품의 가격을 인하하게 되면 가격인하로 인해 매출도 늘고 경쟁업체에 고객 이탈도 막을 수 있다는 내부 검토를 거쳐 문제를 정의하고 목표를 설정한다.</span>
+<span id="cb6-49"><a href="#cb6-49" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-50"><a href="#cb6-50" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-51"><a href="#cb6-51" aria-hidden="true" tabindex="-1"></a><span class="fu">## 기술 통계</span></span>
+<span id="cb6-52"><a href="#cb6-52" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-53"><a href="#cb6-53" aria-hidden="true" tabindex="-1"></a>기존 가격을 인한한 후, 특정 기간동안 구매자 변화를 기록하여 분석한다.</span>
+<span id="cb6-54"><a href="#cb6-54" aria-hidden="true" tabindex="-1"></a>기존 1만인 제품을 1천원 내려 구매량의 변화를 살펴보자.</span>
+<span id="cb6-55"><a href="#cb6-55" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-56"><a href="#cb6-56" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>변경전: 1만원</span>
+<span id="cb6-57"><a href="#cb6-57" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>변경후: 9천원</span>
+<span id="cb6-58"><a href="#cb6-58" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-59"><a href="#cb6-59" aria-hidden="true" tabindex="-1"></a>:::{.panel-tabset}</span>
+<span id="cb6-60"><a href="#cb6-60" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-61"><a href="#cb6-61" aria-hidden="true" tabindex="-1"></a><span class="fu">### 요약표</span></span>
+<span id="cb6-62"><a href="#cb6-62" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-65"><a href="#cb6-65" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb6-66"><a href="#cb6-66" aria-hidden="true" tabindex="-1"></a>ab_testing_long <span class="op">=</span> ab_testing.groupby([<span class="st">'AB테스팅'</span>, <span class="st">'구매여부'</span>], as_index<span class="op">=</span><span class="va">False</span>)[<span class="st">'고객'</span>].count()</span>
+<span id="cb6-67"><a href="#cb6-67" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-68"><a href="#cb6-68" aria-hidden="true" tabindex="-1"></a>ab_testing_wide <span class="op">=</span> pd.pivot(ab_testing_long, index <span class="op">=</span> <span class="st">'구매여부'</span>, columns <span class="op">=</span> <span class="st">'AB테스팅'</span>, values<span class="op">=</span><span class="st">'고객'</span>)</span>
+<span id="cb6-69"><a href="#cb6-69" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-70"><a href="#cb6-70" aria-hidden="true" tabindex="-1"></a>ab_testing_wide[<span class="st">'합계'</span>] <span class="op">=</span>  ab_testing_wide[<span class="st">'변경전'</span>] <span class="op">+</span> ab_testing_wide[<span class="st">'변경후'</span>]</span>
+<span id="cb6-71"><a href="#cb6-71" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-72"><a href="#cb6-72" aria-hidden="true" tabindex="-1"></a>ab_testing_wide  </span>
+<span id="cb6-73"><a href="#cb6-73" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb6-74"><a href="#cb6-74" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-75"><a href="#cb6-75" aria-hidden="true" tabindex="-1"></a><span class="fu">### 시각화</span></span>
+<span id="cb6-76"><a href="#cb6-76" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-79"><a href="#cb6-79" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb6-80"><a href="#cb6-80" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb6-81"><a href="#cb6-81" aria-hidden="true" tabindex="-1"></a>plt.rcParams[<span class="st">'font.family'</span>] <span class="op">=</span> <span class="st">'NanumGothic'</span></span>
+<span id="cb6-82"><a href="#cb6-82" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-83"><a href="#cb6-83" aria-hidden="true" tabindex="-1"></a>x_val <span class="op">=</span> ab_testing_wide.index</span>
+<span id="cb6-84"><a href="#cb6-84" aria-hidden="true" tabindex="-1"></a>before_val <span class="op">=</span> ab_testing_wide[<span class="st">'변경전'</span>]</span>
+<span id="cb6-85"><a href="#cb6-85" aria-hidden="true" tabindex="-1"></a>after_val  <span class="op">=</span> ab_testing_wide[<span class="st">'변경후'</span>]</span>
+<span id="cb6-86"><a href="#cb6-86" aria-hidden="true" tabindex="-1"></a>width <span class="op">=</span> <span class="fl">0.30</span></span>
+<span id="cb6-87"><a href="#cb6-87" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-88"><a href="#cb6-88" aria-hidden="true" tabindex="-1"></a>plt.bar(x_val<span class="op">-</span><span class="fl">0.2</span>, before_val, width)</span>
+<span id="cb6-89"><a href="#cb6-89" aria-hidden="true" tabindex="-1"></a>plt.bar(x_val<span class="op">+</span><span class="fl">0.2</span>, after_val, width)</span>
+<span id="cb6-90"><a href="#cb6-90" aria-hidden="true" tabindex="-1"></a>plt.xticks(x_val, [<span class="st">'0'</span>, <span class="st">'1'</span>])</span>
+<span id="cb6-91"><a href="#cb6-91" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-92"><a href="#cb6-92" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">'웹사이트 가격 변경전후 A/B 테스팅'</span>)</span>
+<span id="cb6-93"><a href="#cb6-93" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">'구매여부'</span>)</span>
+<span id="cb6-94"><a href="#cb6-94" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">'구매구객수'</span>)</span>
+<span id="cb6-95"><a href="#cb6-95" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-96"><a href="#cb6-96" aria-hidden="true" tabindex="-1"></a>plt.show()</span>
+<span id="cb6-97"><a href="#cb6-97" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb6-98"><a href="#cb6-98" aria-hidden="true" tabindex="-1"></a> </span>
+<span id="cb6-99"><a href="#cb6-99" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb6-100"><a href="#cb6-100" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-101"><a href="#cb6-101" aria-hidden="true" tabindex="-1"></a><span class="fu">## 통계 검정</span></span>
+<span id="cb6-102"><a href="#cb6-102" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-103"><a href="#cb6-103" aria-hidden="true" tabindex="-1"></a>상기 기술통계 및 시각화를 통해 가격변경 후 구매율이 높아진 것은 사실이다. </span>
+<span id="cb6-104"><a href="#cb6-104" aria-hidden="true" tabindex="-1"></a>하지만, 이와 같은 차이가 우연에 의한 일시적 현상인지 아니면 통계적으로 가격인하 효과가</span>
+<span id="cb6-105"><a href="#cb6-105" aria-hidden="true" tabindex="-1"></a>실제로 존재하는지 통계검정을 통해 확인한다.</span>
+<span id="cb6-106"><a href="#cb6-106" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-107"><a href="#cb6-107" aria-hidden="true" tabindex="-1"></a>$\hat{p}_{변경전} = 0.1$ 구매율에서 가격인하에 따른 구매율이 $\hat{p}_{변경후} = 0.2$ 로 올라간 상황이 실질적인 가격인하효과에 따른 구매율 변동이 있다는 주장에 대해 $n=10$ 방문객을 대상으로 판단하기는 이르다는 것이 $p-값$ 이 신뢰수준 95%에서 나타나고 있다. </span>
+<span id="cb6-108"><a href="#cb6-108" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-109"><a href="#cb6-109" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-112"><a href="#cb6-112" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb6-113"><a href="#cb6-113" aria-hidden="true" tabindex="-1"></a>ab_testing.groupby([<span class="st">'구매여부'</span>, <span class="st">'AB테스팅'</span>], as_index<span class="op">=</span><span class="va">False</span>)[<span class="st">'고객'</span>].count() </span>
+<span id="cb6-114"><a href="#cb6-114" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-115"><a href="#cb6-115" aria-hidden="true" tabindex="-1"></a>ab_testing_prop <span class="op">=</span> pd.pivot(ab_testing_long, index <span class="op">=</span> <span class="st">'AB테스팅'</span>, columns <span class="op">=</span> <span class="st">'구매여부'</span>, values<span class="op">=</span><span class="st">'고객'</span>).add_prefix(<span class="st">'구매_'</span>)</span>
+<span id="cb6-116"><a href="#cb6-116" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-117"><a href="#cb6-117" aria-hidden="true" tabindex="-1"></a>ab_testing_prop[<span class="st">'합계'</span>] <span class="op">=</span> ab_testing_prop[<span class="st">'구매_0'</span>] <span class="op">+</span> ab_testing_prop[<span class="st">'구매_1'</span>]</span>
+<span id="cb6-118"><a href="#cb6-118" aria-hidden="true" tabindex="-1"></a>ab_testing_prop[<span class="st">'구매율'</span>] <span class="op">=</span> ab_testing_prop[<span class="st">'구매_1'</span>] <span class="op">/</span> ab_testing_prop[<span class="st">'합계'</span>]</span>
+<span id="cb6-119"><a href="#cb6-119" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-120"><a href="#cb6-120" aria-hidden="true" tabindex="-1"></a>ab_testing_prop</span>
+<span id="cb6-121"><a href="#cb6-121" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb6-122"><a href="#cb6-122" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-123"><a href="#cb6-123" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-124"><a href="#cb6-124" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-127"><a href="#cb6-127" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb6-128"><a href="#cb6-128" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb6-129"><a href="#cb6-129" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> statsmodels.stats.proportion <span class="im">import</span> proportions_ztest</span>
+<span id="cb6-130"><a href="#cb6-130" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-131"><a href="#cb6-131" aria-hidden="true" tabindex="-1"></a>purchased <span class="op">=</span> ab_testing_prop[<span class="st">'구매_1'</span>].tolist()</span>
+<span id="cb6-132"><a href="#cb6-132" aria-hidden="true" tabindex="-1"></a>prospect <span class="op">=</span> ab_testing_prop[<span class="st">'합계'</span>].tolist()</span>
+<span id="cb6-133"><a href="#cb6-133" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-134"><a href="#cb6-134" aria-hidden="true" tabindex="-1"></a>stat, pval <span class="op">=</span> proportions_ztest(purchased, prospect, alternative <span class="op">=</span> <span class="st">'smaller'</span>)</span>
+<span id="cb6-135"><a href="#cb6-135" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">'</span><span class="sc">{0:0.3f}</span><span class="st">'</span>.<span class="bu">format</span>(pval))</span>
+<span id="cb6-136"><a href="#cb6-136" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-137"><a href="#cb6-137" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb6-138"><a href="#cb6-138" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-139"><a href="#cb6-139" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-140"><a href="#cb6-140" aria-hidden="true" tabindex="-1"></a><span class="in">`p-값`</span>이 **0.266** 으로 유의수준 0.05보다 크기 때문에 귀무가설을 기각할 수 없어 구매자가 1명 늘었지만 효과가 있다고 단정하기는 이르다고 볼 수 있다.</span>
+</code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div></div></div></div></div>
+</div> <!-- /content -->
+<script>var lightboxQuarto = GLightbox({"closeEffect":"zoom","descPosition":"bottom","selector":".lightbox","openEffect":"zoom","loop":true});</script>
+
+
+
+</body></html>
